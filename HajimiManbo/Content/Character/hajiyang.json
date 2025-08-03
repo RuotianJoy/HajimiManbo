@@ -1,0 +1,34 @@
+{
+  "id": "hajiyang",
+  "name": "哈基阳",
+  "description": "哈基米史上最臭的石!!",
+  "story": "天底如龙，划破长夜",
+  "type": "敏捷型",
+  "color": [ 255, 100, 100 ],
+  "stats": {
+    "attack_power": 12,
+    "speed_multiplier": 1.6,
+    "defense": 2,
+    "jump_multiplier": 1.3,
+    "max_health": 80,
+    "star_ratings": {
+      "attack": 2,
+      "speed": 5,
+      "defense": 2,
+      "jump": 4
+    }
+  },
+  "gameplay": {
+    "character_class": "agile",
+    "special_abilities": [ "high_speed", "enhanced_jump" ],
+    "weapon": "nadir",
+    "unlock_requirements": {
+      "default": true
+    }
+  },
+  "animation": {
+    "folder_name": "HaJiYang",
+    "idle_animation": "noMoveAnimation",
+    "frame_time": 0.12
+  }
+}

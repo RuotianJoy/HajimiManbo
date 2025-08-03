@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "weapons": [
+    {
+      "id": "rainbow_cat_blade",
+      "file": "rainbow_cat_blade.json",
+      "enabled": true,
+      "category": "melee"
+    },
+    {
+      "id": "nadir",
+      "file": "nadir.json",
+      "enabled": true,
+      "category": "melee"
+    },
+    {
+      "id": "orange",
+      "file": "orange.json",
+      "enabled": true,
+      "category": "ranged"
+    }
+  ],
+  "categories": {
+    "melee": {
+      "name": "近战武器",
+      "description": "近距离战斗武器"
+    },
+    "ranged": {
+      "name": "远程武器",
+      "description": "远距离攻击武器"
+    },
+    "magic": {
+      "name": "魔法武器",
+      "description": "魔法攻击武器"
+    }
+  }
+}

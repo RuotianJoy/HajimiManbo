@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "description": "角色配置索引文件",
+  "characters": [
+    {
+      "id": "hajiwei",
+      "file": "hajiwei.json",
+      "enabled": true,
+      "default": true
+    },
+    {
+      "id": "hajiyang",
+      "file": "hajiyang.json",
+      "enabled": true,
+      "default": false
+    },
+    {
+      "id": "doro",
+      "file": "doro.json",
+      "enabled": true,
+      "default": false
+    },
+    {
+      "id": "warrior",
+      "file": "warrior.json",
+      "enabled": false,
+      "default": false
+    }
+  ],
+  "character_classes": {
+    "balanced": {
+      "name": "平衡型",
+      "description": "各项属性均衡的角色类型"
+    },
+    "agile": {
+      "name": "敏捷型",
+      "description": "速度和跳跃力突出的角色类型"
+    },
+    "tank": {
+      "name": "坦克型",
+      "description": "攻击力和防御力突出的角色类型"
+    }
+  },
+  "star_rating_system": {
+    "1": "★☆☆☆☆",
+    "2": "★★☆☆☆",
+    "3": "★★★☆☆",
+    "4": "★★★★☆",
+    "5": "★★★★★"
+  }
+}

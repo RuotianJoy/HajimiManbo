@@ -1,0 +1,34 @@
+{
+  "id": "hajiwei",
+  "name": "哈基为",
+  "description": "哈基米史上最高的山!!",
+  "story": "无限之力，反弹暗芒",
+  "type": "平衡型",
+  "color": [ 65, 105, 225 ],
+  "stats": {
+    "attack_power": 15,
+    "speed_multiplier": 1.0,
+    "defense": 3,
+    "jump_multiplier": 5,
+    "max_health": 10000000,
+    "star_ratings": {
+      "attack": 3,
+      "speed": 3,
+      "defense": 3,
+      "jump": 3
+    }
+  },
+  "gameplay": {
+    "character_class": "balanced",
+    "special_abilities": [],
+    "weapon": "rainbow_cat_blade",
+    "unlock_requirements": {
+      "default": true
+    }
+  },
+  "animation": {
+    "folder_name": "HaJiWei",
+    "idle_animation": "noMoveAnimation",
+    "frame_time": 0.15
+  }
+}

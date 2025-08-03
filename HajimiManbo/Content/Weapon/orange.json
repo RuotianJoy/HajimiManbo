@@ -1,0 +1,41 @@
+{
+  "id": "orange",
+  "name": "欧润几",
+  "description": "欧润几欧润几欧润几",
+  "type": "ranged",
+  "rarity": "rare",
+  "stats": {
+    "damage": 10,
+    "attack_speed": 3,
+    "range": 120,
+    "knockback": 4.5,
+    "critical_chance": 20
+  },
+  "special_abilities": [
+    "fast_strikes",
+    "precision_cuts",
+    "combo_chain"
+  ],
+  "visual": {
+    "sprite_path": "Content/img/Weapon/orange/orange.png",
+    "projectile_sprite": "Content/img/Weapon/orange/orange_projectile.png",
+    "swing_animation": "quick_slash",
+    "color_scheme": [ 192, 192, 192, 255, 255, 255 ]
+  },
+  "sound_effects": {
+    "swing": "blade_swing",
+    "hit": "metal_clang",
+    "critical": "sharp_cut"
+  },
+  "gameplay": {
+    "mana_cost": 0,
+    "use_time": 10,
+    "auto_reuse": true,
+    "combo_multiplier": 1.5,
+    "max_combo": 3
+  },
+  "requirements": {
+    "level": 1,
+    "character_class": "agile"
+  }
+}

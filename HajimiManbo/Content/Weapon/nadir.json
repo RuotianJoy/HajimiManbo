@@ -1,0 +1,42 @@
+{
+  "id": "nadir",
+  "name": "天底",
+  "description": "锋利的刀刃，攻击速度快，适合敏捷型角色",
+  "type": "melee",
+  "rarity": "rare",
+  "stats": {
+    "damage": 12,
+    "attack_speed": 1.8,
+    "range": 120,
+    "knockback": 4.5,
+    "critical_chance": 20
+  },
+  "special_abilities": [
+    "fast_strikes",
+    "precision_cuts",
+    "combo_chain"
+  ],
+  "visual": {
+    "sprite_path": "Content/img/Weapon/nadir/nadir.png",
+    "projectile_sprite": "Content/img/Weapon/nadir/nadir_rotated_45.png",
+    "rotated_sprite": "Content/img/Weapon/nadir/nadir_rotated_45.png",
+    "swing_animation": "quick_slash",
+    "color_scheme": [192, 192, 192, 255, 255, 255]
+   },
+   "sound_effects": {
+    "swing": "blade_swing",
+    "hit": "metal_clang",
+    "critical": "sharp_cut"
+  },
+  "gameplay": {
+    "mana_cost": 0,
+    "use_time": 15,
+    "auto_reuse": true,
+    "combo_multiplier": 1.5,
+    "max_combo": 3
+  },
+  "requirements": {
+    "level": 1,
+    "character_class": "agile"
+  }
+}

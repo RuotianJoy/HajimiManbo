@@ -1,0 +1,41 @@
+{
+  "id": "rainbow_cat_blade",
+  "name": "彩虹猫之刃",
+  "description": "可反弹攻击，攻击范围大，弹幕小",
+  "type": "melee",
+  "rarity": "legendary",
+  "stats": {
+    "damage": 15,
+    "attack_speed": 1.2,
+    "range": 150,
+    "knockback": 6.5,
+    "critical_chance": 15
+  },
+  "special_abilities": [
+    "projectile_reflection",
+    "wide_swing_arc",
+    "rainbow_trail"
+  ],
+  "visual": {
+    "sprite_path": "Content/img/Weapon/meowmere/Meowmere.png",
+    "projectile_sprite": "Content/img/Weapon/meowmere/Meowmere_(projectile).png",
+    "swing_animation": "rainbow_slash",
+    "color_scheme": [255, 192, 203, 255, 255, 0, 0, 255, 255]
+  },
+  "sound_effects": {
+    "swing": "meowmere_swing",
+    "hit": "meowmere_hit",
+    "projectile": "cat_meow"
+  },
+  "gameplay": {
+    "mana_cost": 0,
+    "use_time": 25,
+    "auto_reuse": true,
+    "projectile_count": 1,
+    "projectile_speed": 12.0
+  },
+  "requirements": {
+    "level": 1,
+    "character_class": "balanced"
+  }
+}

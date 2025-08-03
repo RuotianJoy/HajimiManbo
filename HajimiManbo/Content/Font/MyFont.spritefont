@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This file contains an xml description of a font, and will be read by the XNA
+Framework Content Pipeline. Follow the comments to customize the appearance
+of the font in your game, and to change the characters which are available to draw
+with.
+-->
+<XnaContent xmlns:Graphics="Microsoft.Xna.Framework.Content.Pipeline.Graphics">
+  <Asset Type="Graphics:FontDescription">
+
+    <!--
+    Modify this string to change the font that will be imported.
+    -->
+    <FontName>MyFont.ttf</FontName>
+
+    <!--
+    Size is a float value, measured in points. Modify this value to change
+    the size of the font.
+    -->
+    <Size>32</Size>
+
+    <!--
+    Spacing is a float value, measured in pixels. Modify this value to change
+    the amount of spacing in between characters.
+    -->
+    <Spacing>0</Spacing>
+
+    <!--
+    UseKerning controls the layout of the font. If this value is true, kerning information
+    will be used when placing characters.
+    -->
+    <UseKerning>true</UseKerning>
+
+    <!--
+    Style controls the style of the font. Valid entries are "Regular", "Bold", "Italic",
+    and "Bold, Italic", and are case sensitive.
+    -->
+    <Style>Regular</Style>
+
+    <!--
+    If you uncomment this line, the default character will be substituted if you draw
+    or measure text that contains characters which were not included in the font.
+    -->
+    <!-- <DefaultCharacter>*</DefaultCharacter> -->
+
+    <!--
+    CharacterRegions control what letters are available in the font. Every
+    character from Start to End will be built and made available for drawing. The
+    default range is from 32, (ASCII space), to 126, ('~'), covering the basic Latin
+    character set. The characters are ordered according to the Unicode standard.
+    See the documentation for more information.
+    -->
+	  <CharacterRegions>
+		  <!-- 基本 ASCII，留着方便打印英文/符号 -->
+		  <CharacterRegion>
+			  <Start>&#32;</Start>
+			  <!-- 空格 -->
+			  <End>&#126;</End>
+			  <!-- ~ -->
+		  </CharacterRegion>
+
+		  <!-- 常用汉字（CJK Unified Ideographs）-->
+		  <CharacterRegion>
+			  <Start>&#19968;</Start>
+			  <!-- 0x4E00，一 -->
+			  <End>&#40959;</End>
+			  <!-- 0x9FFF，鿿 -->
+		  </CharacterRegion>
+		  
+		  <!-- 中文标点符号 -->
+		  <CharacterRegion>
+			  <Start>&#12288;</Start>
+			  <!-- 全角空格 -->
+			  <End>&#12351;</End>
+			  <!-- 中文标点符号区域 -->
+		  </CharacterRegion>
+		  
+		  <!-- 更多中文符号 -->
+		  <CharacterRegion>
+			  <Start>&#65281;</Start>
+			  <!-- 全角感叹号 -->
+			  <End>&#65374;</End>
+			  <!-- 全角波浪号 -->
+		  </CharacterRegion>
+		  
+		  <CharacterRegion>
+			  <Start>&#215;</Start>
+			  <!-- × -->
+			  <End>&#215;</End>
+		  </CharacterRegion>
+		  <CharacterRegion>
+			  <Start>&#x2605;</Start>
+			  <!-- Unicode 2605 -->
+			  <End>&#x2605;</End>
+		  </CharacterRegion>
+
+	  </CharacterRegions>
+  </Asset>
+</XnaContent>
