@@ -178,11 +178,15 @@ namespace HajimiManbo.Lighting
         {
             if (world == null || _defaultWallTexture == null) return;
             
-            // 计算需要渲染的瓦片范围，向外扩展2个像素
-            int startX = Math.Max(0, (viewBounds.Left - 2) / WALL_SIZE);
-            int endX = Math.Min(world.Width - 1, (viewBounds.Right + 2) / WALL_SIZE + 1);
-            int startY = Math.Max(0, (viewBounds.Top - 2) / WALL_SIZE);
-            int endY = Math.Min(world.Height - 1, (viewBounds.Bottom + 2) / WALL_SIZE + 1);
+            // 计算UI缩放后的墙体大小
+            int scaledWallSize = (int)(WALL_SIZE * UIScaleManager.UniformScale);
+            
+            // 计算需要渲染的瓦片范围，向外扩展像素（考虑UI缩放）
+            int expandPixels = (int)(2 * UIScaleManager.UniformScale);
+            int startX = Math.Max(0, (viewBounds.Left - expandPixels) / scaledWallSize);
+            int endX = Math.Min(world.Width - 1, (viewBounds.Right + expandPixels) / scaledWallSize + 1);
+            int startY = Math.Max(0, (viewBounds.Top - expandPixels) / scaledWallSize);
+            int endY = Math.Min(world.Height - 1, (viewBounds.Bottom + expandPixels) / scaledWallSize + 1);
             
             for (int x = startX; x <= endX; x++)
             {
@@ -200,12 +204,12 @@ namespace HajimiManbo.Lighting
                     
                     if (wallType != TileType.Air)
                     {
-                        // 渲染16x16像素的背景墙
+                        // 渲染16x16像素的背景墙（考虑UI缩放）
                         Rectangle destRect = new Rectangle(
-                            x * WALL_SIZE,     // 标准位置
-                            y * WALL_SIZE,     // 标准位置
-                            WALL_SIZE,         // 标准宽度16px
-                            WALL_SIZE          // 标准高度16px
+                            x * scaledWallSize,     // 缩放后位置
+                            y * scaledWallSize,     // 缩放后位置
+                            scaledWallSize,         // 缩放后宽度
+                            scaledWallSize          // 缩放后高度
                         );
                         
                         // 获取对应的纹理

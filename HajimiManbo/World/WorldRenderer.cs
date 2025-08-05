@@ -302,11 +302,12 @@ namespace HajimiManbo.World
                 offsetY *= 0.3f;
             }
             
-            // 计算纹理在屏幕上的重复次数（放大2倍）
+            // 计算纹理在屏幕上的重复次数（考虑UI缩放）
             int originalWidth = layer.Texture.Width;
             int originalHeight = layer.Texture.Height;
-            int textureWidth = originalWidth * 2;  // 放大2倍
-            int textureHeight = originalHeight * 2; // 放大2倍
+            float scaleFactor = 2.0f * UIScaleManager.UniformScale; // 基础2倍放大 × UI缩放
+            int textureWidth = (int)(originalWidth * scaleFactor);
+            int textureHeight = (int)(originalHeight * scaleFactor);
             
             // 计算需要绘制的瓦片数量（确保完全覆盖视口）
             int tilesX = (viewportBounds.Width / textureWidth) + 3;

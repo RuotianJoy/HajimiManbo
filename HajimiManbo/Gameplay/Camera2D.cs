@@ -60,9 +60,11 @@ namespace HajimiManbo.Gameplay
         {
             if (_worldBounds == Rectangle.Empty) return;
 
-            // 计算“半视口”尺寸（世界单位）
-            float halfW = _viewport.Width * 0.5f / _zoom;
-            float halfH = _viewport.Height * 0.5f / _zoom;
+            // 计算"半视口"尺寸（世界单位），考虑UI缩放因子
+            float effectiveWidth = _viewport.Width / HajimiManbo.UIScaleManager.UniformScale;
+            float effectiveHeight = _viewport.Height / HajimiManbo.UIScaleManager.UniformScale;
+            float halfW = effectiveWidth * 0.5f / _zoom;
+            float halfH = effectiveHeight * 0.5f / _zoom;
 
             float minX = _worldBounds.Left + halfW;
             float maxX = _worldBounds.Right - halfW;
@@ -87,10 +89,14 @@ namespace HajimiManbo.Gameplay
                 -MathF.Floor(_position.Y * _zoom) / _zoom,
                 0f);
 
+            // 考虑UI缩放因子的视口中心平移
+            float effectiveWidth = _viewport.Width / HajimiManbo.UIScaleManager.UniformScale;
+            float effectiveHeight = _viewport.Height / HajimiManbo.UIScaleManager.UniformScale;
+
             return Matrix.CreateTranslation(translate) *
                    Matrix.CreateRotationZ(_rotation) *
                    Matrix.CreateScale(_zoom, _zoom, 1f) *
-                   Matrix.CreateTranslation(_viewport.Width * 0.5f, _viewport.Height * 0.5f, 0f);
+                   Matrix.CreateTranslation(effectiveWidth * 0.5f, effectiveHeight * 0.5f, 0f);
         }
 
         // ────────── 辅助坐标转换 ──────────
@@ -104,8 +110,11 @@ namespace HajimiManbo.Gameplay
         public bool IsInView(Vector2 worldPos, float marginPx = 0f)
         {
             Vector2 screen = WorldToScreen(worldPos);
-            return screen.X >= -marginPx && screen.X <= _viewport.Width + marginPx &&
-                   screen.Y >= -marginPx && screen.Y <= _viewport.Height + marginPx;
+            // 考虑UI缩放因子的视口边界
+            float effectiveWidth = _viewport.Width / HajimiManbo.UIScaleManager.UniformScale;
+            float effectiveHeight = _viewport.Height / HajimiManbo.UIScaleManager.UniformScale;
+            return screen.X >= -marginPx && screen.X <= effectiveWidth + marginPx &&
+                   screen.Y >= -marginPx && screen.Y <= effectiveHeight + marginPx;
         }
     }
 }
