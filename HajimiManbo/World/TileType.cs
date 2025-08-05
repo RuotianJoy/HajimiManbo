@@ -22,6 +22,8 @@ namespace HajimiManbo.World
         SilverOre = 12,    // 银矿
         Coal = 13,         // 煤炭
         Diamond = 14,      // 钻石
-        Marble = 15        // 大理石
+        Marble = 15,       // 大理石
+        Portal = 16,       // 传送门
+        Tiles_189 = 189    // 空岛方块
     }
 }

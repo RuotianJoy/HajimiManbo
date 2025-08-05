@@ -79,10 +79,11 @@ namespace HajimiManbo.Lighting
                 IsActive = true
             });
             
-            if (_lightingEnabled)
-            {
-                RecalculateLighting();
-            }
+            // 移除自动重新计算光照以提高性能
+            // if (_lightingEnabled)
+            // {
+            //     RecalculateLighting();
+            // }
         }
         
         /// <summary>
@@ -92,10 +93,11 @@ namespace HajimiManbo.Lighting
         {
             _lightSources.RemoveAll(ls => Vector2.Distance(ls.Position, position) < 1.0f);
             
-            if (_lightingEnabled)
-            {
-                RecalculateLighting();
-            }
+            // 移除自动重新计算光照以提高性能
+            // if (_lightingEnabled)
+            // {
+            //     RecalculateLighting();
+            // }
         }
         
         /// <summary>
@@ -211,32 +213,23 @@ namespace HajimiManbo.Lighting
                         
                     var neighborTile = _world.GetTile(newX, newY);
                     
-                    // 第六层及以后完全黑暗
-                    if (newLayer >= 6)
-                    {
-                        _lightMap[newX, newY] = 0f;
-                        visited[newX, newY] = true;
-                        continue;
-                    }
-                    
-                    // 根据层级计算光照衰减
-                    float layerFactor = 1.0f - (newLayer / 6.0f); // 从1.0逐渐衰减到0
+                    // 移除层级限制，地下空间保持高亮度
                     float newLightLevel;
                     
                     if (neighborTile.Type == TileType.Air)
                     {
-                        // 空气中光照衰减较少
-                        newLightLevel = currentLight * 0.9f * layerFactor;
+                        // 空气中光照衰减很少
+                        newLightLevel = currentLight * 0.15f;
                     }
                     else if (IsOpaqueTile(neighborTile.Type))
                     {
-                        // 实体方块中光照衰减较多
-                        newLightLevel = currentLight * 0.75f * layerFactor;
+                        // 实体方块中光照衰减适中
+                        newLightLevel = currentLight * 0.65f;
                     }
                     else
                     {
                         // 半透明方块（如水）
-                        newLightLevel = currentLight * 0.85f * layerFactor;
+                        newLightLevel = currentLight * 0.9f;
                     }
                     
                     // 如果新的光照强度足够强且比当前值更亮
@@ -245,11 +238,8 @@ namespace HajimiManbo.Lighting
                         _lightMap[newX, newY] = newLightLevel;
                         visited[newX, newY] = true;
                         
-                        // 如果还没到第六层，继续传播
-                        if (newLayer < 6)
-                        {
-                            queue.Enqueue((newX, newY, newLightLevel, newLayer));
-                        }
+                        // 继续传播光照，不受层级限制
+                        queue.Enqueue((newX, newY, newLightLevel, newLayer));
                     }
                 }
             }
@@ -281,38 +271,12 @@ namespace HajimiManbo.Lighting
         }
         
         /// <summary>
-        /// 根据深度计算光照强度，实现渐进式衰减
+        /// 根据深度计算光照强度，地下空间保持最高亮度
         /// </summary>
         private float CalculateDepthBasedLight(int x, int y)
         {
-            if (x < 0 || x >= _world.Width || y < 0)
-                return MAX_LIGHT;
-                
-            int surfaceLevel = _world.SurfaceHeight != null && x < _world.SurfaceHeight.Length ? 
-                _world.SurfaceHeight[x] : _world.Height / 3;
-            
-            // 计算相对于地表的深度
-            int depthBelowSurface = y - surfaceLevel;
-            
-            // 如果在地表或地表以上，保持最大光照
-            if (depthBelowSurface <= 0)
-                return MAX_LIGHT;
-            
-            // 定义衰减参数
-            int fadeStartDepth = _world.Height / 32; // 开始衰减的深度（更浅）
-            int fadeEndDepth = _world.Height / 6;    // 完全变暗的深度
-            
-            // 如果深度小于开始衰减深度，保持最大光照
-            if (depthBelowSurface < fadeStartDepth)
-                return MAX_LIGHT;
-            
-            // 如果深度大于完全变暗深度，使用环境光
-            if (depthBelowSurface >= fadeEndDepth)
-                return AMBIENT_LIGHT;
-            
-            // 在衰减区间内，线性插值
-            float fadeProgress = (float)(depthBelowSurface - fadeStartDepth) / (fadeEndDepth - fadeStartDepth);
-            return MAX_LIGHT * (1.0f - fadeProgress) + AMBIENT_LIGHT * fadeProgress;
+            // 地下空间始终保持最高亮度，不受深度影响
+            return MAX_LIGHT;
         }
         
         /// <summary>

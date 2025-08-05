@@ -100,6 +100,12 @@ namespace HajimiManbo.Gameplay
         private bool _isOnGround;
         private KeyboardState _previousKeyboardState;
         
+        // 玩家光源相关
+        private bool _hasLightSource = false;
+        private Vector2 _lastLightPosition;
+        private const float LIGHT_INTENSITY = 8.0f; // 降低光源强度以提高性能
+        private readonly Color LIGHT_COLOR = Color.White; // 光源颜色
+        
         public Player(Vector2 startPosition, World.World world, GraphicsDevice graphicsDevice, string characterName, ContentManager contentManager)
         {
             _world = world;
@@ -218,6 +224,9 @@ namespace HajimiManbo.Gameplay
             ApplyPhysics(deltaTime);
             HandleCollisions();
             UpdateAnimation(gameTime);
+            
+            // 更新光源位置
+            UpdateLightSource();
             
             _previousKeyboardState = keyboardState;
         }
@@ -384,6 +393,13 @@ namespace HajimiManbo.Gameplay
             {
                 _position.X = _world.Width * 16 - PlayerWidth / 2;
                 _velocity.X = 0;
+            }
+            
+            // 添加上方边界碰撞检测
+            if (_position.Y < PlayerHeight / 2)
+            {
+                _position.Y = PlayerHeight / 2;
+                _velocity.Y = 0; // 停止向上的速度
             }
             
             if (_position.Y > _world.Height * 16)
@@ -601,38 +617,111 @@ namespace HajimiManbo.Gameplay
         }
         
         /// <summary>
-        /// 尝试自动爬升一格高的障碍物
+        /// 尝试自动爬升台阶（支持连续台阶吸附）
         /// </summary>
         /// <param name="tileX">障碍物的X坐标（瓦片坐标）</param>
         /// <param name="tileY">障碍物的Y坐标（瓦片坐标）</param>
         /// <returns>是否成功爬升</returns>
         private bool TryAutoClimb(int tileX, int tileY)
         {
-            // 检查是否只有一格高的障碍物
-            // 检查障碍物上方是否有空间
-            if (tileY > 0 && _world.GetTile(tileX, tileY - 1).Type == TileType.Air)
+            // 确定移动方向
+            int direction = _velocity.X > 0 ? 1 : -1;
+            
+            // 最大爬升高度（3格）
+            const int maxClimbHeight = 3;
+            
+            // 从1格开始检查，逐渐增加高度
+            for (int climbHeight = 1; climbHeight <= maxClimbHeight; climbHeight++)
             {
+                int targetY = tileY - climbHeight;
+                
+                // 检查目标位置是否在世界范围内
+                if (targetY < 0) continue;
+                
+                // 检查目标位置是否为空气
+                if (_world.GetTile(tileX, targetY).Type != TileType.Air) continue;
+                
                 // 检查玩家头顶是否有足够空间（至少两格）
-                if (tileY > 1 && _world.GetTile(tileX, tileY - 2).Type == TileType.Air)
+                if (targetY < 2 || _world.GetTile(tileX, targetY - 1).Type != TileType.Air || 
+                    _world.GetTile(tileX, targetY - 2).Type != TileType.Air) continue;
+                
+                // 检查移动方向的目标位置
+                int nextTileX = tileX + direction;
+                if (nextTileX < 0 || nextTileX >= _world.Width) continue;
+                
+                // 检查移动方向上方是否也是空气（确保有足够空间站立和移动）
+                if (_world.GetTile(nextTileX, targetY).Type != TileType.Air || 
+                    _world.GetTile(nextTileX, targetY - 1).Type != TileType.Air || 
+                    _world.GetTile(nextTileX, targetY - 2).Type != TileType.Air) continue;
+                
+                // 检查是否有合适的地面支撑（目标位置下方应该有固体方块）
+                if (targetY + 1 < _world.Height && _world.GetTile(nextTileX, targetY + 1).Type != TileType.Air)
                 {
-                    // 确定移动方向
-                    int direction = _velocity.X > 0 ? 1 : -1;
-                    
-                    // 检查移动方向上方是否也是空气（确保有足够空间站立）
-                    int nextTileX = tileX + direction;
-                    if (nextTileX >= 0 && nextTileX < _world.Width && 
-                        _world.GetTile(nextTileX, tileY - 1).Type == TileType.Air && 
-                        _world.GetTile(nextTileX, tileY - 2).Type == TileType.Air)
-                    {
-                        // 自动爬升 - 将玩家位置上移一格
-                        _position.Y -= 16; // 上移一格
-                        UpdateBounds();
-                        return true;
-                    }
+                    // 自动爬升 - 将玩家位置上移到合适高度
+                    _position.Y -= climbHeight * 16; // 上移相应格数
+                    UpdateBounds();
+                    return true;
                 }
             }
             
             return false; // 无法爬升
         }
+        
+        /// <summary>
+        /// 启用玩家光源
+        /// </summary>
+        public void EnableLightSource(World.WorldRenderer worldRenderer)
+        {
+            if (!_hasLightSource && worldRenderer != null)
+            {
+                worldRenderer.AddLightSource(_position, LIGHT_INTENSITY, LIGHT_COLOR);
+                _hasLightSource = true;
+                _lastLightPosition = _position;
+                Console.WriteLine($"[Player] Light source enabled at position ({_position.X}, {_position.Y})");
+            }
+        }
+        
+        /// <summary>
+        /// 禁用玩家光源
+        /// </summary>
+        public void DisableLightSource(World.WorldRenderer worldRenderer)
+        {
+            if (_hasLightSource && worldRenderer != null)
+            {
+                worldRenderer.RemoveLightSource(_lastLightPosition);
+                _hasLightSource = false;
+                Console.WriteLine("[Player] Light source disabled");
+            }
+        }
+        
+        /// <summary>
+        /// 更新光源位置（跟随玩家移动）
+        /// </summary>
+        private void UpdateLightSource()
+        {
+            if (_hasLightSource && _worldRenderer != null)
+            {
+                // 检查玩家是否移动了足够的距离（避免频繁更新）
+                float distanceMoved = Vector2.Distance(_position, _lastLightPosition);
+                if (distanceMoved > 32.0f) // 增加到32像素才更新光源，减少频繁更新
+                {
+                    // 移除旧光源
+                    _worldRenderer.RemoveLightSource(_lastLightPosition);
+                    // 在新位置添加光源
+                    _worldRenderer.AddLightSource(_position, LIGHT_INTENSITY, LIGHT_COLOR);
+                    _lastLightPosition = _position;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 设置世界渲染器引用，用于光源管理
+        /// </summary>
+        public void SetWorldRenderer(World.WorldRenderer worldRenderer)
+        {
+            _worldRenderer = worldRenderer;
+        }
+        
+        private World.WorldRenderer _worldRenderer;
     }
 }

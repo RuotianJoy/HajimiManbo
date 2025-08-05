@@ -2648,6 +2648,18 @@
 /processorParam:TextureFormat=Color
 /build:img/Character/HaJiYang/SprintAnimation/SprintAnimation_sheet.png;img/Character/HaJiYang/SprintAnimation/SprintAnimation_sheet
 
+#begin img/Door/Door.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:img/Door/Door.png;img/Door/Door
+
 #begin img/Enemy/slime/Blue_Slime.gif
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -3116,6 +3128,30 @@
 /processorParam:TextureFormat=Color
 /build:img/Enemy/vulture/Vulture.png;img/Enemy/vulture/Vulture
 
+#begin img/RoomBackGround/Portal_1_BG.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:img/RoomBackGround/Portal_1_BG.png;img/RoomBackGround/Portal_1_BG
+
+#begin img/RoomBackGround/Portal_2_BG.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:img/RoomBackGround/Portal_2_BG.png;img/RoomBackGround/Portal_2_BG
+
 #begin img/Wall/Dirt_Wall_(placed).png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -3325,6 +3361,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Tiles/Tiles_147.png
+
+#begin Tiles/Tiles_189.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Tiles/Tiles_189.png
 
 #begin Tiles/Tiles_2.png
 /importer:TextureImporter

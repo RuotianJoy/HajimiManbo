@@ -149,7 +149,12 @@ namespace HajimiManbo.World
                     
                     // 获取光照颜色
                     Color lightColor = Color.White;
-                    if (_worldRenderer?.GetLightingSystem() != null)
+                    if (tile.Type == TileType.Tiles_189)
+                    {
+                        // 空岛方块始终保持完全明亮，不受光照衰减影响
+                        lightColor = Color.White;
+                    }
+                    else if (_worldRenderer?.GetLightingSystem() != null)
                     {
                         lightColor = _worldRenderer.GetLightingSystem().GetLightColor(x, y);
                     }

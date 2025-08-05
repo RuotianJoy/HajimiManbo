@@ -26,6 +26,9 @@ namespace HajimiManbo.GameStates
         // 网络玩家管理
         private System.Collections.Generic.Dictionary<int, Player> networkPlayers = new System.Collections.Generic.Dictionary<int, Player>();
         
+        // 传送门交互管理器
+        private PortalInteractionManager portalInteractionManager;
+        
         // 调试模式
         private bool showDebugInfo = false;
         
@@ -98,6 +101,22 @@ namespace HajimiManbo.GameStates
                     
                     // 设置世界到渲染器，初始化光照系统
                     worldRenderer?.SetWorld(world);
+                    
+                    // 为玩家设置世界渲染器引用并启用大光源
+                    if (player != null && worldRenderer != null)
+                    {
+                        player.SetWorldRenderer(worldRenderer);
+                        player.EnableLightSource(worldRenderer);
+                        Console.WriteLine("[GamePlay] Player light source enabled");
+                    }
+                    
+                    // 初始化传送门交互管理器
+                    var portalManager = worldGenerator.GetPortalManager();
+                    if (portalManager != null)
+                    {
+                        portalInteractionManager = new PortalInteractionManager(world, portalManager, font, graphics.GraphicsDevice);
+                        Console.WriteLine("[GamePlay] Portal interaction manager initialized");
+                    }
                     
                     isGenerating = false;
                     generationStatus = "世界生成完成！";
@@ -197,6 +216,12 @@ namespace HajimiManbo.GameStates
                     // 再拉取/绘制其他玩家
                     UpdateNetworkPlayers(networkManager, gameTime);
                 }
+                
+                // 更新传送门交互管理器
+                if (portalInteractionManager != null)
+                {
+                    portalInteractionManager.Update(gameTime, player, networkPlayers);
+                }
             }
             
             // 处理鼠标左键点击摧毁物块
@@ -259,6 +284,15 @@ namespace HajimiManbo.GameStates
                         networkPlayer.Position = playerState.Position;
                         networkPlayer.UpdateNetworkState(playerState.Velocity, playerState.IsMoving, 
                             playerState.IsSprinting, playerState.IsOnGround, playerState.FacingRight);
+                        
+                        // 为网络玩家也启用光源
+                        if (worldRenderer != null)
+                        {
+                            networkPlayer.SetWorldRenderer(worldRenderer);
+                            networkPlayer.EnableLightSource(worldRenderer);
+                            Console.WriteLine($"[GamePlay] Network player {slot} light source enabled");
+                        }
+                        
                         networkPlayers[slot] = networkPlayer;
                     }
                     else
@@ -323,6 +357,12 @@ namespace HajimiManbo.GameStates
                 foreach (var networkPlayer in networkPlayers.Values)
                 {
                     networkPlayer.Draw(spriteBatch);
+                }
+                
+                // 渲染传送门交互提示
+                if (portalInteractionManager != null)
+                {
+                    portalInteractionManager.Render(spriteBatch, camera.GetViewMatrix(), player, networkPlayers);
                 }
                 
                 // 结束摄像机渲染，重新开始UI渲染

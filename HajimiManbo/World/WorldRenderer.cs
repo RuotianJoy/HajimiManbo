@@ -24,6 +24,7 @@ namespace HajimiManbo.World
         private BiomeBackgroundManager backgroundManager; // 背景管理器
         private LightingSystem lightingSystem; // 光照系统
         private BackgroundWall backgroundWall; // 背景墙系统
+        private PortalRenderer portalRenderer; // 传送门渲染器
 
         
         // 方块大小（像素）
@@ -42,6 +43,8 @@ namespace HajimiManbo.World
             
             // 初始化背景墙系统
             backgroundWall = new BackgroundWall(graphicsDevice, contentManager, backgroundManager);
+            
+            // 传送门渲染器将在ChunkManager创建后初始化
         }
         
         /// <summary>
@@ -101,7 +104,8 @@ namespace HajimiManbo.World
                 { TileType.GoldOre, new Color(255, 215, 0) },    // 金色
                 { TileType.SilverOre, new Color(192, 192, 192) }, // 银色
                 { TileType.Coal, new Color(36, 36, 36) },        // 黑色
-                { TileType.Diamond, new Color(185, 242, 255) }   // 钻石蓝
+                { TileType.Diamond, new Color(185, 242, 255) },  // 钻石蓝
+                { TileType.Tiles_189, new Color(140, 140, 140) } // 空岛方块 - 深灰色
             };
         }
         
@@ -153,6 +157,9 @@ namespace HajimiManbo.World
                 tileTextures[TileType.Coal] = tileTextures[TileType.Stone];
                 tileTextures[TileType.Diamond] = tileTextures.ContainsKey(TileType.Marble) ? tileTextures[TileType.Marble] : tileTextures[TileType.Stone];
                 
+                // 空岛方块使用石头纹理
+                tileTextures[TileType.Tiles_189] = tileTextures[TileType.Stone];
+                
                 Console.WriteLine("[WorldRenderer] Tile textures loaded successfully");
             }
             catch (Exception ex)
@@ -179,6 +186,12 @@ namespace HajimiManbo.World
             if (chunkManager == null)
             {
                 chunkManager = new ChunkManager(world, graphicsDevice, contentManager, this);
+                
+                // 初始化传送门渲染器（需要ChunkManager）
+                if (portalRenderer == null)
+                {
+                    portalRenderer = new PortalRenderer(chunkManager, graphicsDevice);
+                }
             }
             
             // 保存当前世界引用用于方块连接检测
@@ -215,6 +228,9 @@ namespace HajimiManbo.World
             
             // 传统渲染
             chunkManager.Render(cameraMatrix, projection, viewBounds);
+            
+            // 渲染传送门
+            RenderPortals(world, viewBounds, cameraMatrix);
         }
         
         /// <summary>
@@ -234,6 +250,32 @@ namespace HajimiManbo.World
             
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, cameraMatrix);
             backgroundWall.Render(spriteBatch, world, viewBounds, lightingSystem);
+            spriteBatch.End();
+        }
+        
+        /// <summary>
+        /// 渲染传送门
+        /// </summary>
+        private void RenderPortals(World world, Rectangle viewBounds, Matrix cameraMatrix)
+        {
+            if (portalRenderer == null || world == null) return;
+            
+            // 获取所有传送门
+            var allPortals = Portal.GetAllPortals();
+            if (allPortals == null || allPortals.Count == 0) return;
+            
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, cameraMatrix);
+            
+            foreach (var portal in allPortals.Values)
+            {
+                // 检查传送门是否在视野范围内
+                if (portalRenderer.IsPortalVisible(portal.Position, TileSize, cameraMatrix, viewBounds))
+                {
+                    // 渲染传送门紫色内部区域（传送门结构已在世界生成时构建）
+                    portalRenderer.RenderPortal(spriteBatch, portal.Position, portal.Id, TileSize, cameraMatrix, world);
+                }
+            }
+            
             spriteBatch.End();
         }
         
@@ -366,7 +408,17 @@ namespace HajimiManbo.World
             
             // 添加深度效果（越深越暗）
             float depthFactor = Math.Max(0.3f, 1.0f - (worldY * 0.001f));
-            Color tintColor = Color.Lerp(Color.Black, Color.White, depthFactor);
+            Color tintColor;
+            
+            if (tile.Type == TileType.Tiles_189)
+            {
+                // 空岛方块始终保持完全明亮，不受深度衰减影响
+                tintColor = Color.White;
+            }
+            else
+            {
+                tintColor = Color.Lerp(Color.Black, Color.White, depthFactor);
+            }
             
             // 获取方块连接信息来决定使用哪个贴图帧
             Rectangle sourceRect = GetTileSourceRect(tile.Type, worldX, worldY);
@@ -429,8 +481,8 @@ namespace HajimiManbo.World
         public void AddLightSource(Vector2 position, float intensity, Color color)
         {
             lightingSystem?.AddLightSource(position, intensity, color);
-            // 强制重建所有chunks以应用新的光照
-            ForceRebuildChunks();
+            // 移除强制重建chunks以提高性能
+            // ForceRebuildChunks();
         }
         
         /// <summary>
@@ -622,6 +674,7 @@ namespace HajimiManbo.World
             pixelTexture?.Dispose();
             chunkManager?.Dispose();
             backgroundWall?.Dispose();
+            portalRenderer?.Dispose();
         }
     }
 }

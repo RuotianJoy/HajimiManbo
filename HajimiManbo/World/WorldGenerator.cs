@@ -13,6 +13,7 @@ namespace HajimiManbo.World
         private World world;
         private WorldSettings settings;
         private int seed;
+        private PortalManager portalManager;
         
         /// <summary>
         /// 生成进度事件
@@ -106,6 +107,9 @@ namespace HajimiManbo.World
             var (width, height) = settings.GetWorldSize();
             world = new World(width, height, seed, settings);
             
+            // 初始化传送门管理器
+            portalManager = new PortalManager(world, seed);
+            
             // 执行生成阶段
             ExecuteGenerationPasses();
             
@@ -124,8 +128,11 @@ namespace HajimiManbo.World
                 ("生成背景墙", BackgroundWallPass),
                 ("表面装饰", SurfaceDecorPass),
                 ("生成洞穴", CavesPass),
+                ("生成沙漠山", DesertMountainPass),
+                ("生成空岛", FloatingIslandsPass),
                 ("生成生物群系", BiomesPass),
                 ("生成矿物", OresPass),
+                ("生成传送门", PortalsPass),
                 ("生成液体", LiquidsPass),
                 ("最终处理", FinalizePass)
             };
@@ -377,7 +384,127 @@ namespace HajimiManbo.World
         }
         
         /// <summary>
-        /// 阶段3：生成洞穴（确保地表有入口）
+        /// 阶段3.5：生成沙漠山
+        /// </summary>
+        private void DesertMountainPass()
+        {
+            Console.WriteLine("[沙漠山生成] 开始生成沙漠山");
+            
+            // 在沙漠区域生成沙漠山
+            int desertStartX = (int)(world.Width * 0.3f);
+            int desertEndX = (int)(world.Width * 0.7f);
+            
+            // 在沙漠区域中心生成一座沙漠山
+            int mountainCenterX = (desertStartX + desertEndX) / 2;
+            GenerateDesertMountain(mountainCenterX);
+            
+            Console.WriteLine($"[沙漠山生成] 在位置 {mountainCenterX} 生成沙漠山完成");
+        }
+        
+        /// <summary>
+        /// 生成单个沙漠山
+        /// </summary>
+        /// <param name="centerX">山的中心X坐标</param>
+        private void GenerateDesertMountain(int centerX)
+        {
+            // 获取地表高度并下沉50格
+            int surfaceY = world.SurfaceHeight[centerX];
+            int baseY = surfaceY + 50; // 下沉50格作为山的底部
+            
+            // 沙漠山参数 - 完全的三角形
+            const int BASE_WIDTH = 400; // 底部宽度300格
+            const int WIDTH_DECREMENT = 2; // 每层减2格
+            
+            // 计算山的高度：从300减到0，每层减2，需要150层
+            int MOUNTAIN_HEIGHT = BASE_WIDTH / WIDTH_DECREMENT; // 300/2 = 150层
+            
+            Console.WriteLine($"[沙漠山生成] 在 ({centerX}, {baseY}) 生成完全三角形沙漠山，高度: {MOUNTAIN_HEIGHT}, 底宽: {BASE_WIDTH}");
+            
+            // 从底部开始向上构建，从现有沙块下方向上延伸
+            for (int layer = 0; layer < MOUNTAIN_HEIGHT; layer++)
+            {
+                // 计算当前层的宽度：每层严格减2
+                int currentWidth = BASE_WIDTH - (layer * WIDTH_DECREMENT);
+                
+                // 如果宽度小于等于8格，停止生成（保留8格沙块在顶部）
+                if (currentWidth <= 8) break;
+                
+                // 计算当前层的Y坐标（从底部向上构建）
+                int currentY = baseY - layer;
+                
+                // 确保不超出世界边界
+                if (currentY < 0) break;
+                
+                // 计算当前层的起始X坐标
+                int startX = centerX - currentWidth / 2;
+                
+                // 放置沙漠块
+                for (int x = 0; x < currentWidth; x++)
+                {
+                    int blockX = startX + x;
+                    
+                    // 确保在世界范围内
+                    if (blockX >= 0 && blockX < world.Width)
+                    {
+                        // 直接放置沙漠块，不检查是否为空气（从地下向上延伸）
+                        // 使用固定样式让沙块看起来一格一格的
+                        byte sandStyle = 0; // 使用固定样式
+                        world.SetTile(blockX, currentY, new Tile(TileType.Sand, sandStyle));
+                    }
+                }
+                
+                // 每10层输出一次进度
+                if (layer % 10 == 0)
+                {
+                    Console.WriteLine($"[沙漠山生成] 第 {layer} 层完成，当前宽度: {currentWidth}");
+                }
+            }
+            
+            Console.WriteLine($"[沙漠山生成] 沙漠山构建完成，共 {MOUNTAIN_HEIGHT} 层");
+            
+            // 在沙漠山顶部生成传送门
+            GenerateDesertPortalOnMountain(centerX, baseY, MOUNTAIN_HEIGHT);
+        }
+        
+        /// <summary>
+        /// 在沙漠山顶部生成沙漠传送门
+        /// </summary>
+        /// <param name="centerX">山的中心X坐标</param>
+        /// <param name="baseY">山的底部Y坐标</param>
+        /// <param name="mountainHeight">山的高度</param>
+        private void GenerateDesertPortalOnMountain(int centerX, int baseY, int mountainHeight)
+        {
+            // 计算山顶位置（8格宽的平台）
+            // 找到最后一层沙块的位置（宽度为8格的那一层）
+            const int BASE_WIDTH = 400;
+            const int WIDTH_DECREMENT = 2;
+            
+            // 计算到达8格宽度时的层数
+            int layersToTop = (BASE_WIDTH - 8) / WIDTH_DECREMENT; // (400-8)/2 = 196层
+            int topY = baseY - layersToTop; // 山顶沙块的Y坐标
+            
+            int portalX = centerX; // 传送门X坐标在山的中心
+            int portalY = topY; // 传送门直接贴在山顶沙块上
+            
+            // 确保传送门位置在世界范围内
+            if (portalX >= 0 && portalX < world.Width && portalY >= 0 && portalY < world.Height)
+            {
+                // 构建传送门结构
+                BuildPortalStructureInWorld(portalX, portalY);
+                
+                // 创建沙漠传送门对象
+                var portal = Portal.CreateDesertPortal(new Vector2(portalX, portalY));
+                
+                Console.WriteLine($"[沙漠山生成] 在沙漠山顶部位置 ({portalX}, {portalY}) 创建沙漠传送门，ID: {portal.Id}，山顶层数: {layersToTop}");
+            }
+            else
+            {
+                Console.WriteLine($"[沙漠山生成] 沙漠传送门位置超出世界边界: ({portalX}, {portalY})");
+            }
+        }
+        
+        /// <summary>
+        /// 阶段4：生成洞穴（确保地表有入口）
         /// </summary>
         private void CavesPass()
         {
@@ -392,9 +519,15 @@ namespace HajimiManbo.World
                 int entranceX = random.Next(50, world.Width - 50);
                 int entranceY = world.SurfaceHeight[entranceX];
                 
-                // 生成从地表开始的洞穴系统
-                GenerateCaveSystem(entranceX, entranceY, random);
+                // 生成从地表开始的洞穴系统，不在洞穴中放置传送门
+                GenerateCaveSystem(entranceX, entranceY, random, false);
             }
+            
+            // 在出生点右边固定距离的地表上放置洞穴传送门
+            int spawnX = 10; // 出生点X坐标（与GamePlayState中保持一致）
+            int portalX = spawnX + 50; // 出生点右边50个方块的位置
+            int portalY = world.SurfaceHeight[portalX];
+            PlaceCavePortal(portalX, portalY);
             
             // 额外的小型洞穴使用噪声生成
             for (int x = 0; x < world.Width; x++)
@@ -417,12 +550,15 @@ namespace HajimiManbo.World
             
             // 生成一些随机的大洞穴
             GenerateRandomCaves();
+            
+            // 生成从地表向下的垂直通道和地下房间
+            GenerateVerticalShaftAndUndergroundRoom(random);
         }
         
         /// <summary>
         /// 生成从地表开始的洞穴系统
         /// </summary>
-        private void GenerateCaveSystem(int entranceX, int entranceY, Random random)
+        private void GenerateCaveSystem(int entranceX, int entranceY, Random random, bool shouldPlacePortal = false)
         {
             // 从地表向下挖掘主通道
             int currentX = entranceX;
@@ -451,6 +587,12 @@ namespace HajimiManbo.World
                         RemoveBackgroundWallIfShallow(currentX + 1, tileY);
                     }
                 }
+            }
+            
+            // 在洞穴入口放置传送门（只在第一个洞穴系统中放置）
+            if (shouldPlacePortal)
+            {
+                PlaceCavePortal(currentX, currentY + 2);
             }
             
             // 生成分支洞穴
@@ -1095,5 +1237,415 @@ namespace HajimiManbo.World
             }
         }
 
+        /// <summary>
+        /// 生成空岛阶段
+        /// </summary>
+        private void FloatingIslandsPass()
+        {
+            var random = new Random(seed);
+            
+            // 整个世界只生成一个空岛
+            int islandCount = 1;
+            
+            for (int i = 0; i < islandCount; i++)
+            {
+                GenerateFloatingIsland(random);
+            }
+        }
+        
+        /// <summary>
+        /// 生成单个空岛
+        /// </summary>
+        private void GenerateFloatingIsland(Random random)
+        {
+            // 确定空岛位置 - 固定生成在地图右四分之一的地方
+            int rightQuarterStart = world.Width * 3 / 4; // 右四分之一开始位置
+            int rightQuarterEnd = world.Width - 100; // 右边界留100格边距
+            int centerX = random.Next(rightQuarterStart, rightQuarterEnd);
+            int surfaceLevel = settings.GetSurfaceLevel();
+            int skyZoneStart = Math.Max(50, surfaceLevel - 400); // 天空区域开始位置，更高
+            int centerY = random.Next(skyZoneStart, surfaceLevel - 150); // 确保在地表上方，位置更高
+            
+            // 生成独特的梯形空岛结构
+            int surfaceWidth = 90; // 表面宽度
+            int islandHeight = surfaceWidth + 2; // 空岛高度，前两层保持30，然后递减到1
+            
+            // 生成梯形岛屿主体
+            for (int layer = 0; layer < islandHeight; layer++)
+            {
+                int currentWidth;
+                if (layer < 4) // 前两层保持30个方块
+                {
+                    currentWidth = surfaceWidth;
+                }
+                else // 从第三层开始递减
+                {
+                    currentWidth = surfaceWidth - ((layer - 2) * 2); // 每层左右各减少1个
+                }
+                if (currentWidth <= 0) break;
+                
+                int startX = centerX - currentWidth / 2;
+                int currentY = centerY + layer;
+                
+                for (int i = 0; i < currentWidth; i++)
+                {
+                    int x = startX + i;
+                    
+                    // 检查边界
+                    if (x < 0 || x >= world.Width || currentY < 0 || currentY >= world.Height)
+                        continue;
+                    
+                    // 添加边缘噪声（只在边缘位置）
+                    bool isEdge = (i == 0 || i == currentWidth - 1);
+                    bool shouldPlace = true;
+                    
+                    if (isEdge && random.NextDouble() < 0.3) // 30%概率在边缘添加噪声
+                    {
+                        shouldPlace = false;
+                    }
+                    
+                    if (shouldPlace)
+                    {
+                        TileType tileType;
+                        
+                        // 确定方块类型
+                        if (layer == 0) // 表面层
+                        {
+                            tileType = TileType.Grass; // 草方块
+                        }
+                        else if (layer == 1 || layer == 2) // 下面两层
+                        {
+                            tileType = TileType.Dirt; // 泥土方块
+                        }
+                        else if (isEdge) // 斜边位置
+                        {
+                            tileType = TileType.Tiles_189; // 斜边也使用草方块
+                        }
+                        else // 其余层
+                        {
+                            tileType = TileType.Tiles_189; // 云层方块
+                        }
+                        
+                        world.SetTile(x, currentY, new Tile(tileType));
+                        // 设置背景墙为白色像素块（使用Air表示白色背景）
+                        world.SetBackgroundWall(x, currentY, TileType.Air);
+                    }
+                }
+            }
+            
+            // 在空岛表面中央放置传送门（centerY是空岛顶部，表面应该是centerY）
+            PlaceIslandPortal(centerX, centerY);
+        }
+        
+        /// <summary>
+        /// 在洞穴入口放置传送门
+        /// </summary>
+        private void PlaceCavePortal(int x, int y)
+        {
+            // 在洞穴入口构建完整的传送门结构
+            if (x >= 0 && x < world.Width && y >= 0 && y < world.Height)
+            {
+                // 构建传送门结构
+                BuildPortalStructureInWorld(x, y);
+                
+                // 创建传送门对象
+                var portal = Portal.CreateCavePortal(new Vector2(x, y));
+                
+                Console.WriteLine($"[世界生成器] 在洞穴位置 ({x}, {y}) 放置传送门，ID: {portal.Id}");
+            }
+        }
+        
+        /// <summary>
+        /// 在空岛表面放置传送门
+        /// </summary>
+        private void PlaceIslandPortal(int centerX, int centerY)
+        {
+            // 在空岛表面构建完整的传送门结构
+            if (centerX >= 0 && centerX < world.Width && centerY >= 0 && centerY < world.Height)
+            {
+                // 构建传送门结构
+                BuildPortalStructureInWorld(centerX, centerY);
+                
+                // 创建传送门对象
+                var portal = Portal.CreateIslandPortal(new Vector2(centerX, centerY));
+                
+                Console.WriteLine($"[世界生成器] 在空岛位置 ({centerX}, {centerY}) 放置传送门，ID: {portal.Id}");
+            }
+        }
+        
+        /// <summary>
+        /// 在空岛内部生成洞穴
+        /// </summary>
+        private void GenerateIslandCaves(Random random, int centerX, int centerY, int islandWidth, int islandHeight)
+        {
+            // 生成2-4个小洞穴
+            int caveCount = random.Next(2, 5);
+            
+            for (int i = 0; i < caveCount; i++)
+            {
+                // 洞穴起始位置在岛屿内部
+                int caveStartX = centerX + random.Next(-islandWidth/2, islandWidth/2);
+                int caveStartY = centerY + random.Next(2, islandHeight - 2); // 避免在表面和最底层生成洞穴
+                
+                // 检查起始位置是否在岛屿内
+                if (caveStartX < 0 || caveStartX >= world.Width || caveStartY < 0 || caveStartY >= world.Height)
+                    continue;
+                    
+                var tileType = world.GetTile(caveStartX, caveStartY).Type;
+                if (tileType != TileType.Tiles_189 && tileType != TileType.Dirt)
+                    continue;
+                
+                // 生成小型蠕虫洞穴
+                GenerateSmallWormCave(caveStartX, caveStartY, random.Next(10, 25), random);
+            }
+        }
+        
+        /// <summary>
+        /// 生成小型蠕虫洞穴（用于空岛内部）
+        /// </summary>
+        private void GenerateSmallWormCave(int startX, int startY, int length, Random random)
+        {
+            float currentX = startX;
+            float currentY = startY;
+            float direction = (float)(random.NextDouble() * Math.PI * 2);
+            
+            for (int i = 0; i < length; i++)
+            {
+                // 挖掘当前位置周围的小区域
+                int radius = random.Next(1, 3);
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    for (int dy = -radius; dy <= radius; dy++)
+                    {
+                        int x = (int)currentX + dx;
+                        int y = (int)currentY + dy;
+                        
+                        if (x >= 0 && x < world.Width && y >= 0 && y < world.Height)
+                        {
+                            if (dx * dx + dy * dy <= radius * radius)
+                            {
+                                world.SetTile(x, y, Tile.Air);
+                            }
+                        }
+                    }
+                }
+                
+                // 更新方向（轻微随机变化）
+                direction += (float)(random.NextDouble() - 0.5) * 0.5f;
+                
+                // 移动到下一个位置
+                currentX += (float)Math.Cos(direction) * 1.5f;
+                currentY += (float)Math.Sin(direction) * 1.5f;
+            }
+        }
+        
+        /// <summary>
+        /// 阶段8：生成传送门
+        /// </summary>
+        private void PortalsPass()
+        {
+            Console.WriteLine("[传送门生成] 传送门已在地形生成时放置");
+            
+            // 传送门已在地形生成时放置，这里只需要统计
+            var allPortals = Portal.GetAllPortals();
+            Console.WriteLine($"[传送门生成] 传送门生成完成，共生成 {allPortals.Count} 个传送门");
+            
+            // 显示传送门信息
+            foreach (var portal in allPortals.Values)
+            {
+                Console.WriteLine($"[传送门生成] 传送门 ID:{portal.Id}, 位置:({portal.Position.X}, {portal.Position.Y}), 名称:{portal.Name}");
+            }
+        }
+        
+
+        
+        /// <summary>
+        /// 在世界中构建传送门结构 - 完全悬空，不依赖地表
+        /// </summary>
+        /// <param name="centerX">传送门中心X坐标</param>
+        /// <param name="centerY">传送门中心Y坐标</param>
+        private void BuildPortalStructureInWorld(int centerX, int centerY)
+        {
+            // 传送门结构尺寸
+            const int PORTAL_WIDTH = 8;
+            
+            // 使用固定的悬空位置，不依赖地表
+            // 传送门结构将完全悬空，底部位置就是传入的centerY
+            int startX = centerX - PORTAL_WIDTH / 2;
+            int baseY = centerY; // 直接使用传入的Y坐标作为底部基准
+            
+            // 第1层（最底层）：8个石块
+            for (int x = 0; x < 8; x++)
+            {
+                world.SetTile(startX + x, baseY, new Tile(TileType.Stone));
+            }
+            
+            // 第2层：6个石块（中间缩进）
+            for (int x = 1; x < 7; x++)
+            {
+                world.SetTile(startX + x, baseY - 1, new Tile(TileType.Stone));
+            }
+            
+            // 左侧柱子：8个大理石块（在6个石块的第一个位置上）
+            for (int y = 2; y <= 9; y++)
+            {
+                world.SetTile(startX + 1, baseY - y, new Tile(TileType.Marble));
+            }
+            
+            // 右侧柱子：8个大理石块（在6个石块的最后一个位置上）
+            for (int y = 2; y <= 9; y++)
+            {
+                world.SetTile(startX + 6, baseY - y, new Tile(TileType.Marble));
+            }
+            
+            // 顶部大理石封顶（第10层，连接两个柱子）
+            for (int x = 1; x <= 6; x++)
+            {
+                world.SetTile(startX + x, baseY - 10, new Tile(TileType.Marble));
+            }
+            
+            // 最顶层：4个石块（中间）
+            for (int x = 2; x < 6; x++)
+            {
+                world.SetTile(startX + x, baseY - 11, new Tile(TileType.Stone));
+            }
+            
+            // 在传送门中间填充雪块
+            for (int x = 2; x <= 5; x++) // 两个柱子之间的4格宽度（x=2,3,4,5）
+            {
+                for (int y = 2; y <= 9; y++) // 从第3层到第10层，完全填充柱子之间的空间
+                {
+                    world.SetTile(startX + x, baseY - y, new Tile(TileType.Snow));
+                }
+            }
+            
+            // 在传送门结构中心位置放置Portal瓦片作为标记
+            // 放置在传送门结构的中心高度（第5层），便于交互检测
+            world.SetTile(centerX, baseY - 5, new Tile(TileType.Portal, 1));
+        }
+        
+        /// <summary>
+        /// 寻找空岛地表位置
+        /// </summary>
+        /// <param name="centerX">中心X坐标</param>
+        /// <param name="centerY">中心Y坐标</param>
+        /// <returns>地表Y坐标，如果找不到返回-1</returns>
+        private int FindIslandSurface(int centerX, int centerY)
+        {
+            // 首先检查当前位置是否就是空岛表面
+            if (centerY < world.Height - 1)
+            {
+                var currentTile = world.GetTile(centerX, centerY);
+                var belowTile = world.GetTile(centerX, centerY + 1);
+                
+                // 如果当前是空气，下面是固体，则这里就是地表
+                if (currentTile.Type == TileType.Air && belowTile.Type != TileType.Air)
+                {
+                    return centerY;
+                }
+            }
+            
+            // 向下搜索空岛表面（限制搜索范围，避免找到地面）
+            for (int y = centerY + 1; y < Math.Min(world.Height - 1, centerY + 50); y++)
+            {
+                var currentTile = world.GetTile(centerX, y);
+                var belowTile = world.GetTile(centerX, y + 1);
+                
+                // 如果当前是空气，下面是固体，则这里是地表
+                if (currentTile.Type == TileType.Air && belowTile.Type != TileType.Air)
+                {
+                    return y;
+                }
+            }
+            
+            // 向上搜索空岛表面
+            for (int y = centerY - 1; y >= Math.Max(0, centerY - 50); y--)
+            {
+                var currentTile = world.GetTile(centerX, y);
+                var belowTile = world.GetTile(centerX, y + 1);
+                
+                // 如果当前是空气，下面是固体，则这里是地表
+                if (currentTile.Type == TileType.Air && belowTile.Type != TileType.Air)
+                {
+                    return y;
+                }
+            }
+            
+            // 如果没找到合适的地表，返回传送门位置
+            return centerY;
+        }
+        
+        /// <summary>
+        /// 获取传送门管理器（供外部访问）
+        /// </summary>
+        public PortalManager GetPortalManager()
+        {
+            return portalManager;
+        }
+        
+        /// <summary>
+        /// 生成从地表向下的垂直通道和地下房间
+        /// </summary>
+        private void GenerateVerticalShaftAndUndergroundRoom(Random random)
+        {
+            // 选择通道的起始位置（在世界左三分之一处）
+            int shaftX = world.Width / 4 + random.Next(-50, 50);
+            int surfaceY = world.SurfaceHeight[shaftX];
+            
+            // 通道参数
+            const int SHAFT_WIDTH = 20;
+            const int SHAFT_DEPTH = 200;
+            const int ROOM_SIZE = 150;
+            
+            Console.WriteLine($"[垂直通道生成] 开始在位置 ({shaftX}, {surfaceY}) 生成垂直通道，宽度: {SHAFT_WIDTH}，深度: {SHAFT_DEPTH}");
+            
+            // 生成垂直通道
+            for (int depth = 0; depth < SHAFT_DEPTH; depth++)
+            {
+                int currentY = surfaceY + depth;
+                
+                // 确保不超出世界边界
+                if (currentY >= world.Height - ROOM_SIZE - 10)
+                    break;
+                
+                // 挖掘通道宽度
+                for (int width = 0; width < SHAFT_WIDTH; width++)
+                {
+                    int currentX = shaftX - SHAFT_WIDTH / 2 + width;
+                    
+                    // 确保X坐标在世界范围内
+                    if (currentX >= 0 && currentX < world.Width)
+                    {
+                        world.SetTile(currentX, currentY, new Tile(TileType.Air, 0));
+                        RemoveBackgroundWallIfShallow(currentX, currentY);
+                    }
+                }
+            }
+            
+            // 计算地下房间的起始位置
+            int roomStartY = surfaceY + SHAFT_DEPTH;
+            int roomCenterX = shaftX;
+            
+            Console.WriteLine($"[地下房间生成] 开始在位置 ({roomCenterX}, {roomStartY}) 生成地下房间，尺寸: {ROOM_SIZE}x{ROOM_SIZE}");
+            
+            // 生成地下房间
+            for (int x = 0; x < ROOM_SIZE; x++)
+            {
+                for (int y = 0; y < ROOM_SIZE; y++)
+                {
+                    int roomX = roomCenterX - ROOM_SIZE / 2 + x;
+                    int roomY = roomStartY + y;
+                    
+                    // 确保坐标在世界范围内
+                    if (roomX >= 0 && roomX < world.Width && roomY >= 0 && roomY < world.Height)
+                    {
+                        world.SetTile(roomX, roomY, new Tile(TileType.Air, 0));
+                        RemoveBackgroundWallIfShallow(roomX, roomY);
+                    }
+                }
+            }
+            
+            Console.WriteLine($"[垂直通道和地下房间] 生成完成，通道深度: {SHAFT_DEPTH}，房间尺寸: {ROOM_SIZE}x{ROOM_SIZE}");
+        }
     }
 }

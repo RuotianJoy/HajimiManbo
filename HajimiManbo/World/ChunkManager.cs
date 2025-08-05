@@ -75,6 +75,7 @@ namespace HajimiManbo.World
                 _tileTextures[TileType.Snow] = _contentManager.Load<Texture2D>("Tiles/Tiles_147");    // TileID 147: 雪
                 _tileTextures[TileType.JungleGrass] = _contentManager.Load<Texture2D>("Tiles/Tiles_2"); // TileID 367: 丛林草
                 _tileTextures[TileType.Marble] = _contentManager.Load<Texture2D>("Tiles/Tiles_367");    // 大理石使用石头图集
+                _tileTextures[TileType.Tiles_189] = _contentManager.Load<Texture2D>("Tiles/Tiles_189"); // 空岛方块使用189号图集
                 
                 Console.WriteLine("[ChunkManager] Successfully loaded 47-frame tile atlases");
             }
@@ -93,6 +94,7 @@ namespace HajimiManbo.World
                     _tileTextures[TileType.Marble] = _contentManager.Load<Texture2D>("Tiles/Marble_Block_(placed)");
                     _tileTextures[TileType.Grass] = _contentManager.Load<Texture2D>("Tiles/Dirt_Block_(placed)");
                     _tileTextures[TileType.JungleGrass] = _contentManager.Load<Texture2D>("Tiles/Dirt_Block_(placed)");
+                    _tileTextures[TileType.Tiles_189] = _contentManager.Load<Texture2D>("Tiles/Stone_Block_(placed)");
                     
                     Console.WriteLine("[ChunkManager] Successfully loaded fallback single tile textures");
                 }
