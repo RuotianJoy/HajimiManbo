@@ -7,7 +7,7 @@
   "color": [ 65, 105, 225 ],
   "stats": {
     "attack_power": 15,
-    "speed_multiplier": 1.0,
+    "speed_multiplier": 5.0,
     "defense": 3,
     "jump_multiplier": 5,
     "max_health": 10000000,

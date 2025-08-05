@@ -5,144 +5,107 @@ using System;
 namespace HajimiManbo.Gameplay
 {
     /// <summary>
-    /// 2D摄像机类，用于处理视图矩阵、跟随玩家、边界限制等功能
+    /// 像 Terraria 一样的二维摄像机：
+    ///   • 默认 1:1 缩放（Zoom=1），方块 16 px 时，1080p 能看到约 120×68 个方块  
+    ///   • 支持 0.5–2.0 缩放，与 Terraria “视距”滑杆相同  
+    ///   • 像素-完美锁定：避免 1 px 闪缝
     /// </summary>
     public class Camera2D
     {
-        private Vector2 _position;
-        private float _zoom;
-        private float _rotation;
+        // ────────── 基础字段 ──────────
+        private Vector2 _position;        // 世界像素坐标，指摄像机中心
+        private float _zoom = 1f;  // 0.5–2.0
+        private float _rotation = 0f;  // 旋转一般用不到，保留接口
         private Viewport _viewport;
-        private Rectangle _worldBounds;
-        
-        public Vector2 Position
-        {
-            get => _position;
-            set => _position = value;
-        }
-        
+        private Rectangle _worldBounds = Rectangle.Empty; // 像素单位
+
+        // ────────── 公共属性 ──────────
+        public Vector2 Position => _position;        // 只读，改用 CenterOn / Move
         public float Zoom
         {
             get => _zoom;
-            set => _zoom = MathHelper.Clamp(value, 0.1f, 3.0f);
+            set => _zoom = MathHelper.Clamp(value, 0.5f, 2.0f);
         }
-        
         public float Rotation
         {
             get => _rotation;
             set => _rotation = value;
         }
-        
         public Rectangle WorldBounds
         {
             get => _worldBounds;
             set => _worldBounds = value;
         }
-        
-        public Camera2D(Viewport viewport)
+
+        // ────────── 构造 ──────────
+        public Camera2D(Viewport viewport) => _viewport = viewport;
+
+        // ────────── 基础功能 ──────────
+        /// <summary>把摄像机中心直接对准目标（立即跟随）。</summary>
+        public void CenterOn(Vector2 targetCenter)
         {
-            _viewport = viewport;
-            _zoom = 1.5f;  // 增加默认缩放级别，使视口更近
-            _rotation = 0.0f;
-            _position = Vector2.Zero;
-            _worldBounds = Rectangle.Empty;
+            _position = targetCenter;
+            ClampInsideWorld();
         }
-        
-        /// <summary>
-        /// 让摄像机跟随目标位置
-        /// </summary>
-        /// <param name="targetPosition">目标位置</param>
-        public void Follow(Vector2 targetPosition)
+
+        /// <summary>以 Lerp 方式平滑跟随。</summary>
+        public void SmoothFollow(Vector2 targetCenter, float lerpAmount = 0.15f)
         {
-            _position = targetPosition;
-            
-            // 如果设置了世界边界，限制摄像机不超出边界
-            if (_worldBounds != Rectangle.Empty)
-            {
-                ClampToWorldBounds();
-            }
+            _position = Vector2.Lerp(_position, targetCenter, MathHelper.Clamp(lerpAmount, 0f, 1f));
+            ClampInsideWorld();
         }
-        
-        /// <summary>
-        /// 平滑跟随目标位置
-        /// </summary>
-        /// <param name="targetPosition">目标位置</param>
-        /// <param name="lerpAmount">插值量(0-1)</param>
-        public void SmoothFollow(Vector2 targetPosition, float lerpAmount)
+
+        /// <summary>在当前缩放下，把摄像机限制在世界范围内。</summary>
+        private void ClampInsideWorld()
         {
-            _position = Vector2.Lerp(_position, targetPosition, lerpAmount);
-            
-            if (_worldBounds != Rectangle.Empty)
-            {
-                ClampToWorldBounds();
-            }
+            if (_worldBounds == Rectangle.Empty) return;
+
+            // 计算“半视口”尺寸（世界单位）
+            float halfW = _viewport.Width * 0.5f / _zoom;
+            float halfH = _viewport.Height * 0.5f / _zoom;
+
+            float minX = _worldBounds.Left + halfW;
+            float maxX = _worldBounds.Right - halfW;
+            float minY = _worldBounds.Top + halfH;
+            float maxY = _worldBounds.Bottom - halfH;
+
+            // 若地图比视口还小，直接居中
+            if (minX > maxX) { _position.X = (_worldBounds.Left + _worldBounds.Right) * 0.5f; }
+            else { _position.X = MathHelper.Clamp(_position.X, minX, maxX); }
+
+            if (minY > maxY) { _position.Y = (_worldBounds.Top + _worldBounds.Bottom) * 0.5f; }
+            else { _position.Y = MathHelper.Clamp(_position.Y, minY, maxY); }
         }
-        
-        /// <summary>
-        /// 限制摄像机在世界边界内
-        /// </summary>
-        private void ClampToWorldBounds()
-        {
-            Vector2 cameraWorldMin = Vector2.Transform(Vector2.Zero, Matrix.Invert(GetViewMatrix()));
-            Vector2 cameraWorldMax = Vector2.Transform(new Vector2(_viewport.Width, _viewport.Height), Matrix.Invert(GetViewMatrix()));
-            
-            Vector2 adjustedPosition = _position;
-            
-            if (cameraWorldMin.X < _worldBounds.Left)
-                adjustedPosition.X = _position.X + (_worldBounds.Left - cameraWorldMin.X);
-            if (cameraWorldMax.X > _worldBounds.Right)
-                adjustedPosition.X = _position.X + (_worldBounds.Right - cameraWorldMax.X);
-            if (cameraWorldMin.Y < _worldBounds.Top)
-                adjustedPosition.Y = _position.Y + (_worldBounds.Top - cameraWorldMin.Y);
-            if (cameraWorldMax.Y > _worldBounds.Bottom)
-                adjustedPosition.Y = _position.Y + (_worldBounds.Bottom - cameraWorldMax.Y);
-            
-            _position = adjustedPosition;
-        }
-        
-        /// <summary>
-        /// 获取视图矩阵
-        /// </summary>
-        /// <returns>视图变换矩阵</returns>
+
+        // ────────── 视矩阵 ──────────
         public Matrix GetViewMatrix()
         {
-            return Matrix.CreateTranslation(new Vector3(-_position, 0)) *
+            // 注意顺序：先把世界-摄像机中心移到原点 → 旋转 → 缩放 → 把屏幕中心移回视口中心
+            // 最后再对 平移×缩放 做 Floor，像素锁定
+            Vector3 translate = new Vector3(
+                -MathF.Floor(_position.X * _zoom) / _zoom,
+                -MathF.Floor(_position.Y * _zoom) / _zoom,
+                0f);
+
+            return Matrix.CreateTranslation(translate) *
                    Matrix.CreateRotationZ(_rotation) *
-                   Matrix.CreateScale(_zoom) *
-                   Matrix.CreateTranslation(new Vector3(_viewport.Width * 0.5f, _viewport.Height * 0.5f, 0));
+                   Matrix.CreateScale(_zoom, _zoom, 1f) *
+                   Matrix.CreateTranslation(_viewport.Width * 0.5f, _viewport.Height * 0.5f, 0f);
         }
-        
-        /// <summary>
-        /// 将屏幕坐标转换为世界坐标
-        /// </summary>
-        /// <param name="screenPosition">屏幕坐标</param>
-        /// <returns>世界坐标</returns>
-        public Vector2 ScreenToWorld(Vector2 screenPosition)
+
+        // ────────── 辅助坐标转换 ──────────
+        public Vector2 ScreenToWorld(Vector2 screenPos) =>
+            Vector2.Transform(screenPos, Matrix.Invert(GetViewMatrix()));
+
+        public Vector2 WorldToScreen(Vector2 worldPos) =>
+            Vector2.Transform(worldPos, GetViewMatrix());
+
+        /// <summary>判断某点（世界坐标）是否在当前可见范围内。</summary>
+        public bool IsInView(Vector2 worldPos, float marginPx = 0f)
         {
-            return Vector2.Transform(screenPosition, Matrix.Invert(GetViewMatrix()));
-        }
-        
-        /// <summary>
-        /// 将世界坐标转换为屏幕坐标
-        /// </summary>
-        /// <param name="worldPosition">世界坐标</param>
-        /// <returns>屏幕坐标</returns>
-        public Vector2 WorldToScreen(Vector2 worldPosition)
-        {
-            return Vector2.Transform(worldPosition, GetViewMatrix());
-        }
-        
-        /// <summary>
-        /// 检查世界坐标是否在摄像机视野内
-        /// </summary>
-        /// <param name="worldPosition">世界坐标</param>
-        /// <param name="margin">边距</param>
-        /// <returns>是否可见</returns>
-        public bool IsInView(Vector2 worldPosition, float margin = 0)
-        {
-            Vector2 screenPos = WorldToScreen(worldPosition);
-            return screenPos.X >= -margin && screenPos.X <= _viewport.Width + margin &&
-                   screenPos.Y >= -margin && screenPos.Y <= _viewport.Height + margin;
+            Vector2 screen = WorldToScreen(worldPos);
+            return screen.X >= -marginPx && screen.X <= _viewport.Width + marginPx &&
+                   screen.Y >= -marginPx && screen.Y <= _viewport.Height + marginPx;
         }
     }
 }

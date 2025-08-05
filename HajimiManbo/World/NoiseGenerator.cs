@@ -10,6 +10,11 @@ namespace HajimiManbo.World
         private static Random random;
         
         /// <summary>
+        /// 获取随机数生成器
+        /// </summary>
+        public static Random Random => random ?? (random = new Random());
+        
+        /// <summary>
         /// 初始化噪声生成器
         /// </summary>
         public static void Initialize(int seed)

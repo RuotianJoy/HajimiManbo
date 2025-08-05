@@ -46,6 +46,9 @@ namespace HajimiManbo.GameStates
             // 订阅生成进度事件
             worldGenerator.OnProgressUpdate += OnWorldGenerationProgress;
             
+            // 订阅世界生成完成事件
+            worldGenerator.OnWorldGenerationComplete += OnWorldGenerationComplete;
+            
             // 订阅网络事件
             var networkManager = HajimiManbo.Network.NetworkManager.Instance;
             networkManager.OnReturnToRoomFromGame += OnReturnToRoomFromGame;
@@ -91,7 +94,10 @@ namespace HajimiManbo.GameStates
                     
                     // 设置摄像机世界边界和初始位置
                     camera.WorldBounds = new Rectangle(0, 0, world.Width * 16, world.Height * 16);
-                    camera.Follow(player.Position);
+                    camera.CenterOn(player.Position);
+                    
+                    // 设置世界到渲染器，初始化光照系统
+                    worldRenderer?.SetWorld(world);
                     
                     isGenerating = false;
                     generationStatus = "世界生成完成！";
@@ -112,6 +118,15 @@ namespace HajimiManbo.GameStates
         {
             generationStatus = status;
             generationProgress = progress;
+        }
+        
+        private void OnWorldGenerationComplete(World.World generatedWorld)
+        {
+            // 设置世界到渲染器，初始化光照系统
+            worldRenderer?.SetWorld(generatedWorld);
+            
+            // 强制重建所有渲染缓存，确保新的地形算法生效
+            worldRenderer?.ForceRebuildChunks();
         }
 
         public override void Update(GameTime gameTime)
@@ -182,6 +197,21 @@ namespace HajimiManbo.GameStates
                     // 再拉取/绘制其他玩家
                     UpdateNetworkPlayers(networkManager, gameTime);
                 }
+            }
+            
+            // 处理鼠标左键点击摧毁物块
+            if (mouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton == ButtonState.Released)
+            {
+                HandleBlockDestruction(mouseState);
+            }
+            
+            // 处理光照系统调试控制
+            // 光照调试控制已移除
+            
+            // 处理鼠标右键点击放置物块
+            if (mouseState.RightButton == ButtonState.Pressed && previousMouseState.RightButton == ButtonState.Released)
+            {
+                HandleBlockPlacement(mouseState);
             }
             
             // 调试信息切换
@@ -386,7 +416,7 @@ namespace HajimiManbo.GameStates
         /// </summary>
         private void DrawControlHints()
         {
-            string controlText = "WASD: 移动 | 空格: 跳跃 | F3: 调试 | ESC: 菜单";
+            string controlText = "WASD: 移动 | 空格: 跳跃 | 鼠标左键: 摧毁 | 鼠标右键: 放置 | F3: 调试 | L: 光照 | T: 光源 | ESC: 菜单";
             Vector2 textSize = font.MeasureString(controlText);
             Vector2 position = new Vector2(
                 graphics.PreferredBackBufferWidth / 2 - textSize.X / 2,
@@ -405,7 +435,7 @@ namespace HajimiManbo.GameStates
             );
             spriteBatch.Draw(pixelTexture, background, Color.Black * 0.7f);
             
-            spriteBatch.DrawString(font, controlText, position, Color.White);
+            //spriteBatch.DrawString(font, controlText, position, Color.White);
             
             pixelTexture.Dispose();
         }
@@ -673,6 +703,94 @@ namespace HajimiManbo.GameStates
             };
         }
         
-
+        /// <summary>
+        /// 处理物块摧毁
+        /// </summary>
+        private void HandleBlockDestruction(MouseState mouseState)
+        {
+            if (world == null || camera == null) return;
+            
+            // 将鼠标屏幕坐标转换为世界坐标
+            Vector2 mouseScreenPos = new Vector2(mouseState.X, mouseState.Y);
+            Vector2 mouseWorldPos = camera.ScreenToWorld(mouseScreenPos);
+            
+            // 将世界坐标转换为方块坐标（每个方块16像素）
+            int tileX = (int)(mouseWorldPos.X / 16);
+            int tileY = (int)(mouseWorldPos.Y / 16);
+            
+            // 检查坐标是否在世界范围内
+            if (world.IsValidCoordinate(tileX, tileY))
+            {
+                // 获取当前方块
+                var currentTile = world.GetTile(tileX, tileY);
+                
+                // 只摧毁非空气方块
+                if (currentTile.Type != TileType.Air)
+                {
+                    // 创建新的方块，只清除方块类型
+                    var newTile = new Tile(
+                        TileType.Air,           // 方块类型设为空气
+                        currentTile.Style,      // 保留样式
+                        currentTile.Liquid,     // 保留液体
+                        currentTile.FrameVariant, // 保留帧变体
+                        currentTile.Slope       // 保留斜坡
+                    );
+                    
+                    world.SetTile(tileX, tileY, newTile);
+                    
+                    // 通知世界渲染器更新分块
+                    if (worldRenderer != null)
+                    {
+                        worldRenderer.OnTileChanged(tileX, tileY);
+                    }
+                }
+            }
+        }
+        
+        // 光照调试控制方法已移除
+        
+        /// <summary>
+        /// 处理物块放置
+        /// </summary>
+        private void HandleBlockPlacement(MouseState mouseState)
+        {
+            if (world == null || camera == null) return;
+            
+            // 将鼠标屏幕坐标转换为世界坐标
+            Vector2 mouseScreenPos = new Vector2(mouseState.X, mouseState.Y);
+            Vector2 mouseWorldPos = camera.ScreenToWorld(mouseScreenPos);
+            
+            // 将世界坐标转换为方块坐标（每个方块16像素）
+            int tileX = (int)(mouseWorldPos.X / 16);
+            int tileY = (int)(mouseWorldPos.Y / 16);
+            
+            // 检查坐标是否在世界范围内
+            if (world.IsValidCoordinate(tileX, tileY))
+            {
+                // 获取当前方块
+                var currentTile = world.GetTile(tileX, tileY);
+                
+                // 只在空气方块位置放置新方块
+                if (currentTile.Type == TileType.Air)
+                {
+                    // 创建新的方块
+                    var newTile = new Tile(
+                        TileType.Dirt,          // 放置泥土方块（可以后续扩展为可选择的方块类型）
+                        currentTile.Style,      // 保留样式
+                        currentTile.Liquid,     // 保留液体
+                        currentTile.FrameVariant, // 保留帧变体
+                        currentTile.Slope       // 保留斜坡
+                    );
+                    
+                    world.SetTile(tileX, tileY, newTile);
+                    
+                    // 通知世界渲染器更新分块
+                    if (worldRenderer != null)
+                    {
+                        worldRenderer.OnTileChanged(tileX, tileY);
+                    }
+                }
+            }
+        }
     }
 }

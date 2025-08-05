@@ -218,9 +218,7 @@ namespace HajimiManbo.GameStates
                 case 0: // 全屏
                     _isFullScreen = !_isFullScreen;
                     graphics.IsFullScreen = _isFullScreen;
-                    graphics.ApplyChanges();
-                    UIScaleManager.UpdateScale(graphics);
-                    RecalculateLayout();
+                    ((Game1)game).ApplyGraphicsChanges();
                     break;
 
                 case 1: // 分辨率
@@ -228,9 +226,7 @@ namespace HajimiManbo.GameStates
                     var (w, h) = _resolutions[_resolutionIdx];
                     graphics.PreferredBackBufferWidth = w;
                     graphics.PreferredBackBufferHeight = h;
-                    graphics.ApplyChanges();
-                    UIScaleManager.UpdateScale(graphics);
-                    RecalculateLayout();
+                    ((Game1)game).ApplyGraphicsChanges();
                     break;
 
                 case 2: // 刷新率

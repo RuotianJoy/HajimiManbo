@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using HajimiManbo.Lighting;
+
 
 namespace HajimiManbo.World
 {
@@ -20,6 +22,9 @@ namespace HajimiManbo.World
         private World currentWorld; // 用于检查相邻方块
         private ChunkManager chunkManager;
         private BiomeBackgroundManager backgroundManager; // 背景管理器
+        private LightingSystem lightingSystem; // 光照系统
+        private BackgroundWall backgroundWall; // 背景墙系统
+
         
         // 方块大小（像素）
         public int TileSize { get; set; } = 16;
@@ -34,6 +39,27 @@ namespace HajimiManbo.World
             
             // 初始化背景管理器
             backgroundManager = new BiomeBackgroundManager(contentManager);
+            
+            // 初始化背景墙系统
+            backgroundWall = new BackgroundWall(graphicsDevice, contentManager, backgroundManager);
+        }
+        
+        /// <summary>
+        /// 设置世界并初始化光照系统
+        /// </summary>
+        public void SetWorld(World world)
+        {
+            currentWorld = world;
+            if (world != null)
+            {
+                lightingSystem = new LightingSystem(world);
+                // 光照系统默认启用，初始为全亮状态
+                lightingSystem.LightingEnabled = true;
+                lightingSystem.RecalculateLighting();
+                
+                // 将光照系统传递给背景墙
+                backgroundWall?.SetLightingSystem(lightingSystem);
+            }
         }
         
         /// <summary>
@@ -88,14 +114,32 @@ namespace HajimiManbo.World
             
             try
             {
-                // 加载更新后的图块纹理（带有"(placed)"后缀）
-                tileTextures[TileType.Dirt] = contentManager.Load<Texture2D>("Tiles/Dirt_Block_(placed)");
-                tileTextures[TileType.Sand] = contentManager.Load<Texture2D>("Tiles/Sand_Block_(placed)");
-                tileTextures[TileType.Snow] = contentManager.Load<Texture2D>("Tiles/Snow_Block_(placed)");
-                tileTextures[TileType.Stone] = contentManager.Load<Texture2D>("Tiles/Stone_Block_(placed)"); // 使用专门的石头纹理
-                
-                // 大理石作为特殊石头类型
-                var marbleTexture = contentManager.Load<Texture2D>("Tiles/Marble_Block_(placed)");
+                // 优先加载16格帧图集纹理
+                try
+                {
+                    tileTextures[TileType.Dirt] = contentManager.Load<Texture2D>("Tiles/Dirt_Block_Frames");
+                    tileTextures[TileType.Sand] = contentManager.Load<Texture2D>("Tiles/Sand_Block_Frames");
+                    tileTextures[TileType.Snow] = contentManager.Load<Texture2D>("Tiles/Snow_Block_Frames");
+                    tileTextures[TileType.Stone] = contentManager.Load<Texture2D>("Tiles/Stone_Block_Frames");
+                    
+                    // 大理石帧图集
+                    tileTextures[TileType.Marble] = contentManager.Load<Texture2D>("Tiles/Marble_Block_Frames");
+                    
+                    Console.WriteLine("[WorldRenderer] 16-frame tilesets loaded successfully");
+                }
+                catch
+                {
+                    // 如果帧图集加载失败，回退到单一纹理
+                    Console.WriteLine("[WorldRenderer] Frame tilesets not found, falling back to single textures");
+                    
+                    tileTextures[TileType.Dirt] = contentManager.Load<Texture2D>("Tiles/Dirt_Block_(placed)");
+                    tileTextures[TileType.Sand] = contentManager.Load<Texture2D>("Tiles/Sand_Block_(placed)");
+                    tileTextures[TileType.Snow] = contentManager.Load<Texture2D>("Tiles/Snow_Block_(placed)");
+                    tileTextures[TileType.Stone] = contentManager.Load<Texture2D>("Tiles/Stone_Block_(placed)");
+                    
+                    // 大理石作为特殊石头类型
+                    tileTextures[TileType.Marble] = contentManager.Load<Texture2D>("Tiles/Marble_Block_(placed)");
+                }
                 
                 // 对于没有专门纹理的方块类型，可以复用现有纹理
                 tileTextures[TileType.Grass] = tileTextures[TileType.Dirt]; // 草地使用泥土纹理
@@ -104,12 +148,12 @@ namespace HajimiManbo.World
                 // 矿物可以使用石头纹理作为基础
                 tileTextures[TileType.CopperOre] = tileTextures[TileType.Stone];
                 tileTextures[TileType.IronOre] = tileTextures[TileType.Stone];
-                tileTextures[TileType.GoldOre] = marbleTexture; // 金矿使用大理石纹理
-                tileTextures[TileType.SilverOre] = marbleTexture; // 银矿使用大理石纹理
+                tileTextures[TileType.GoldOre] = tileTextures.ContainsKey(TileType.Marble) ? tileTextures[TileType.Marble] : tileTextures[TileType.Stone];
+                tileTextures[TileType.SilverOre] = tileTextures.ContainsKey(TileType.Marble) ? tileTextures[TileType.Marble] : tileTextures[TileType.Stone];
                 tileTextures[TileType.Coal] = tileTextures[TileType.Stone];
-                tileTextures[TileType.Diamond] = marbleTexture; // 钻石使用大理石纹理
+                tileTextures[TileType.Diamond] = tileTextures.ContainsKey(TileType.Marble) ? tileTextures[TileType.Marble] : tileTextures[TileType.Stone];
                 
-                Console.WriteLine("[WorldRenderer] Updated tile textures loaded successfully");
+                Console.WriteLine("[WorldRenderer] Tile textures loaded successfully");
             }
             catch (Exception ex)
             {
@@ -125,14 +169,20 @@ namespace HajimiManbo.World
         {
             if (world == null) return;
             
-            // 保存当前世界引用用于方块连接检测
-            currentWorld = world;
+            // 初始化光照系统（如果还没有）
+            if (lightingSystem == null && world != null)
+            {
+                SetWorld(world);
+            }
             
             // 初始化ChunkManager（如果还没有）
             if (chunkManager == null)
             {
-                chunkManager = new ChunkManager(world, graphicsDevice, contentManager);
+                chunkManager = new ChunkManager(world, graphicsDevice, contentManager, this);
             }
+            
+            // 保存当前世界引用用于方块连接检测
+            currentWorld = world;
             
 
             
@@ -151,8 +201,17 @@ namespace HajimiManbo.World
                 0, 1
             );
             
+            // 更新光照系统（根据玩家位置调整表面光照）
+            if (lightingSystem != null)
+            {
+                lightingSystem.RecalculateLighting(cameraPosition);
+            }
+            
             // 渲染背景
             RenderBackground(world, viewportBounds, cameraMatrix, cameraPosition);
+            
+            // 渲染背景墙
+            RenderBackgroundWalls(world, viewBounds, cameraMatrix, lightingSystem);
             
             // 传统渲染
             chunkManager.Render(cameraMatrix, projection, viewBounds);
@@ -167,11 +226,25 @@ namespace HajimiManbo.World
         }
         
         /// <summary>
+        /// 渲染背景墙
+        /// </summary>
+        private void RenderBackgroundWalls(World world, Rectangle viewBounds, Matrix cameraMatrix, LightingSystem lightingSystem)
+        {
+            if (backgroundWall == null || world == null) return;
+            
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, cameraMatrix);
+            backgroundWall.Render(spriteBatch, world, viewBounds, lightingSystem);
+            spriteBatch.End();
+        }
+        
+        /// <summary>
         /// 渲染多层视差背景（泰拉瑞亚风格）
         /// </summary>
         private void RenderBackground(World world, Rectangle viewportBounds, Matrix cameraMatrix, Vector2 cameraPosition)
         {
             if (backgroundManager == null) return;
+            
+            // 背景始终正常渲染，不受光照系统影响
             
             // 获取视口中心位置的背景层信息
             float viewportCenterX = cameraPosition.X + viewportBounds.Width / 2f;
@@ -179,7 +252,7 @@ namespace HajimiManbo.World
             var (primaryLayers, secondaryLayers, blendFactor) = backgroundManager.GetBlendedBackgroundLayers(world, viewportCenterX, viewportCenterY);
             
             // 使用LinearWrap采样器以获得更好的平铺效果
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
             
             // 渲染主背景的所有层
             if (primaryLayers != null)
@@ -210,12 +283,13 @@ namespace HajimiManbo.World
         {
             if (layer.Texture == null) return;
             
-            // 应用层的颜色调色
+            // 应用层的颜色调色，并增加透明度营造远景效果
+            float alphaMultiplier = 0.6f; // 调整透明度，0.6表示60%的不透明度
             Color finalColor = new Color(
                 (int)(layer.TintColor.R * tintColor.R / 255f),
                 (int)(layer.TintColor.G * tintColor.G / 255f),
                 (int)(layer.TintColor.B * tintColor.B / 255f),
-                (int)(layer.TintColor.A * tintColor.A / 255f)
+                (int)(layer.TintColor.A * tintColor.A * alphaMultiplier / 255f)
             );
             
             // 计算视差偏移（按泰拉瑞亚的设计）
@@ -296,34 +370,37 @@ namespace HajimiManbo.World
             // 获取方块连接信息来决定使用哪个贴图帧
             Rectangle sourceRect = GetTileSourceRect(tile.Type, worldX, worldY);
             
-            // 特殊渲染逻辑：草地方块的处理
-            if (tile.Type == TileType.Grass)
+            // 注意：斜坡渲染现在由Chunk系统处理
             {
-                RenderGrassTile(destRect, sourceRect, tintColor, worldX, worldY);
-            }
-            else if (tile.Type == TileType.JungleGrass)
-            {
-                RenderJungleGrassTile(destRect, sourceRect, tintColor, worldX, worldY);
-            }
-            else
-            {
-                // 普通方块渲染
-                if (tileTextures != null && tileTextures.TryGetValue(tile.Type, out Texture2D texture) && texture != null)
+                // 特殊渲染逻辑：草地方块的处理
+                if (tile.Type == TileType.Grass)
                 {
-                    spriteBatch.Draw(texture, destRect, sourceRect, tintColor);
+                    RenderGrassTile(destRect, sourceRect, tintColor, worldX, worldY);
+                }
+                else if (tile.Type == TileType.JungleGrass)
+                {
+                    RenderJungleGrassTile(destRect, sourceRect, tintColor, worldX, worldY);
                 }
                 else
-                 {
-                     // 回退到颜色模式
-                     if (!tileColors.TryGetValue(tile.Type, out Color color))
+                {
+                    // 普通方块渲染
+                    if (tileTextures != null && tileTextures.TryGetValue(tile.Type, out Texture2D texture) && texture != null)
+                    {
+                        spriteBatch.Draw(texture, destRect, sourceRect, tintColor);
+                    }
+                    else
                      {
-                         color = Color.Magenta; // 未知方块用洋红色表示
-                     }
-                 
-                     if (color == Color.Transparent) return;
+                         // 回退到颜色模式
+                         if (!tileColors.TryGetValue(tile.Type, out Color color))
+                         {
+                             color = Color.Magenta; // 未知方块用洋红色表示
+                         }
                      
-                     color = Color.Lerp(Color.Black, color, depthFactor);
-                     spriteBatch.Draw(pixelTexture, destRect, color);
+                         if (color == Color.Transparent) return;
+                         
+                         color = Color.Lerp(Color.Black, color, depthFactor);
+                         spriteBatch.Draw(pixelTexture, destRect, color);
+                     }
                  }
              }
          }
@@ -334,6 +411,43 @@ namespace HajimiManbo.World
         public void OnTileChanged(int tileX, int tileY)
         {
             chunkManager?.OnTileChanged(tileX, tileY);
+            lightingSystem?.OnTileChanged(tileX, tileY);
+        }
+        
+        /// <summary>
+        /// 获取光照系统
+        /// </summary>
+        public LightingSystem GetLightingSystem()
+        {
+            return lightingSystem;
+        }
+        
+        /// <summary>
+        /// 添加光源
+        /// </summary>
+        public void AddLightSource(Vector2 position, float intensity, Color color)
+        {
+            lightingSystem?.AddLightSource(position, intensity, color);
+            // 强制重建所有chunks以应用新的光照
+            ForceRebuildChunks();
+        }
+        
+        /// <summary>
+        /// 移除光源
+        /// </summary>
+        public void RemoveLightSource(Vector2 position)
+        {
+            lightingSystem?.RemoveLightSource(position);
+        }
+        
+        // 光照切换功能已移除
+        
+        /// <summary>
+        /// 强制重建所有chunks，用于世界生成完成后刷新渲染缓存
+        /// </summary>
+        public void ForceRebuildChunks()
+        {
+            chunkManager?.RebuildAll();
         }
         
         /// <summary>
@@ -353,12 +467,15 @@ namespace HajimiManbo.World
                 biomeInfo = backgroundManager.GetBiomeName(currentBiome);
             }
             
+            string lightingStatus = lightingSystem?.LightingEnabled == true ? "Enabled" : "Disabled";
+            int lightSourceCount = lightingSystem?.GetLightSourceCount() ?? 0;
+            
             string debugText = $"World Size: {world.Width} x {world.Height}\n" +
                               $"Visible Chunks: {renderStats.VisibleChunks}/{renderStats.TotalChunks}\n" +
                               $"Chunk Size: {renderStats.ChunkSize}x{renderStats.ChunkSize}\n" +
                               $"Current Biome: {biomeInfo}\n" +
-                              $"Lighting: Disabled\n" +
-                              $"Light Sources: 0";
+                              $"Lighting: {lightingStatus}\n" +
+                              $"Light Sources: {lightSourceCount}";
             
             Vector2 position = new Vector2(10, 100);
             
@@ -390,78 +507,24 @@ namespace HajimiManbo.World
         }
         
         /// <summary>
-         /// 获取方块的源矩形（用于纹理图集）
+         /// 获取方块的源矩形（简化版本，现在主要由Chunk系统处理）
          /// </summary>
          private Rectangle GetTileSourceRect(TileType tileType, int worldX, int worldY)
          {
-             // 对于当前的单独纹理文件，返回完整纹理
-             // 在Terraria中，这里会根据方块连接情况选择不同的帧
-             
-             // 检查是否需要连接效果的方块类型
-             if (ShouldConnectTiles(tileType))
-             {
-                 return GetConnectedTileFrame(tileType, worldX, worldY);
-             }
-             
-             // 对于不需要连接的方块（如矿物），使用完整纹理
+             // 注意：详细的纹理源矩形计算现在由Chunk系统处理
+             // 这里只返回默认的完整纹理矩形
              return GetFullTextureRect();
          }
          
-         /// <summary>
-         /// 判断方块类型是否需要连接效果
-         /// </summary>
-         private bool ShouldConnectTiles(TileType tileType)
-         {
-             // 这些方块类型支持连接效果
-             return tileType == TileType.Dirt ||
-                    tileType == TileType.Stone ||
-                    tileType == TileType.Sand ||
-                    tileType == TileType.Snow ||
-                    tileType == TileType.Grass ||
-                    tileType == TileType.JungleGrass;
-         }
-         
-         /// <summary>
-         /// 获取连接方块的纹理帧
-         /// </summary>
-         private Rectangle GetConnectedTileFrame(TileType tileType, int worldX, int worldY)
-         {
-             if (currentWorld == null)
-                 return GetFullTextureRect();
-             
-             // 检查四个主要方向的相邻方块
-             bool hasTop = CanConnectTo(worldX, worldY - 1, tileType);
-             bool hasRight = CanConnectTo(worldX + 1, worldY, tileType);
-             bool hasBottom = CanConnectTo(worldX, worldY + 1, tileType);
-             bool hasLeft = CanConnectTo(worldX - 1, worldY, tileType);
-             
-             // 新的嵌合方案：从48x48中提取中心32x32区域进行拼接
-             // 48px图像的中心32px区域：从(8,8)开始，大小为32x32
-             int centerStart = 8;  // (48-32)/2 = 8
-             int centerSize = 32;
-             
-             // 根据连接情况调整提取区域
-             int left = centerStart;
-             int top = centerStart;
-             int width = centerSize;
-             int height = centerSize;
-             
-             // 如果有连接，扩展到边缘以实现无缝拼接
-             if (hasLeft) left = 0;
-             if (hasTop) top = 0;
-             if (hasRight) width = 48 - left;
-             if (hasBottom) height = 48 - top;
-             
-             return new Rectangle(left, top, width, height);
-         }
+         // 注意：帧计算逻辑已移至Chunk.cs中，此处不再重复实现
          
          /// <summary>
          /// 获取完整纹理矩形
          /// </summary>
          private Rectangle GetFullTextureRect()
          {
-             // 48x48像素的纹理会被缩放到16x16的游戏世界尺寸
-             return new Rectangle(0, 0, 48, 48);
+             // 16x16像素的纹理帧
+             return new Rectangle(0, 0, 16, 16);
          }
          
          /// <summary>
@@ -493,7 +556,7 @@ namespace HajimiManbo.World
                  return true;
              if (tileType == TileType.Dirt && tile.Type == TileType.Grass)
                  return true;
-                 
+             
              // 丛林草可以与泥土连接
              if (tileType == TileType.JungleGrass && tile.Type == TileType.Dirt)
                  return true;
@@ -542,17 +605,22 @@ namespace HajimiManbo.World
               }
           }
           
-
+          // 注意：斜坡渲染逻辑已移至Chunk系统中，此处不再重复实现
           
 
           
-          /// <summary>
-          /// 释放资源
-          /// </summary>
+
+          
+  
+
+        /// <summary>
+        /// 释放资源
+        /// </summary>
         public void Dispose()
         {
             pixelTexture?.Dispose();
             chunkManager?.Dispose();
+            backgroundWall?.Dispose();
         }
     }
 }

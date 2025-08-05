@@ -34,6 +34,11 @@ namespace HajimiManbo.World
         public int[] SurfaceHeight { get; private set; }
         
         /// <summary>
+        /// 背景墙数据数组 [x, y]
+        /// </summary>
+        public TileType[,] BackgroundWalls { get; private set; }
+        
+        /// <summary>
         /// 世界生成设置
         /// </summary>
         public WorldSettings Settings { get; private set; }
@@ -46,6 +51,7 @@ namespace HajimiManbo.World
             Settings = settings;
             Tiles = new Tile[width, height];
             SurfaceHeight = new int[width];
+            BackgroundWalls = new TileType[width, height];
             
             // 初始化为空气
             for (int x = 0; x < width; x++)
@@ -75,6 +81,27 @@ namespace HajimiManbo.World
             if (x >= 0 && x < Width && y >= 0 && y < Height)
             {
                 Tiles[x, y] = tile;
+            }
+        }
+        
+        /// <summary>
+        /// 获取指定位置的背景墙
+        /// </summary>
+        public TileType GetBackgroundWall(int x, int y)
+        {
+            if (x < 0 || x >= Width || y < 0 || y >= Height)
+                return TileType.Air;
+            return BackgroundWalls[x, y];
+        }
+        
+        /// <summary>
+        /// 设置指定位置的背景墙
+        /// </summary>
+        public void SetBackgroundWall(int x, int y, TileType wallType)
+        {
+            if (x >= 0 && x < Width && y >= 0 && y < Height)
+            {
+                BackgroundWalls[x, y] = wallType;
             }
         }
         

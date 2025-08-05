@@ -419,7 +419,13 @@ namespace HajimiManbo.Gameplay
                         
                         if (playerRect.Intersects(tileRect))
                         {
-                            // 水平碰撞处理
+                            // 尝试自动爬升一格高度
+                            if (TryAutoClimb(x, y))
+                            {
+                                return; // 成功爬升，继续移动
+                            }
+                            
+                            // 无法爬升，进行常规碰撞处理
                             if (_velocity.X > 0) // 向右移动
                             {
                                 _position.X = tileRect.Left - PlayerWidth / 2;
@@ -592,6 +598,41 @@ namespace HajimiManbo.Gameplay
             }
             
             return false; // 没有找到地面，不能跳跃
+        }
+        
+        /// <summary>
+        /// 尝试自动爬升一格高的障碍物
+        /// </summary>
+        /// <param name="tileX">障碍物的X坐标（瓦片坐标）</param>
+        /// <param name="tileY">障碍物的Y坐标（瓦片坐标）</param>
+        /// <returns>是否成功爬升</returns>
+        private bool TryAutoClimb(int tileX, int tileY)
+        {
+            // 检查是否只有一格高的障碍物
+            // 检查障碍物上方是否有空间
+            if (tileY > 0 && _world.GetTile(tileX, tileY - 1).Type == TileType.Air)
+            {
+                // 检查玩家头顶是否有足够空间（至少两格）
+                if (tileY > 1 && _world.GetTile(tileX, tileY - 2).Type == TileType.Air)
+                {
+                    // 确定移动方向
+                    int direction = _velocity.X > 0 ? 1 : -1;
+                    
+                    // 检查移动方向上方是否也是空气（确保有足够空间站立）
+                    int nextTileX = tileX + direction;
+                    if (nextTileX >= 0 && nextTileX < _world.Width && 
+                        _world.GetTile(nextTileX, tileY - 1).Type == TileType.Air && 
+                        _world.GetTile(nextTileX, tileY - 2).Type == TileType.Air)
+                    {
+                        // 自动爬升 - 将玩家位置上移一格
+                        _position.Y -= 16; // 上移一格
+                        UpdateBounds();
+                        return true;
+                    }
+                }
+            }
+            
+            return false; // 无法爬升
         }
     }
 }

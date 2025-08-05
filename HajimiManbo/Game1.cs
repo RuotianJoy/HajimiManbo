@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -10,6 +11,9 @@ namespace HajimiManbo
 {
     public class Game1 : Game
     {
+        [DllImport("kernel32.dll")]
+        private static extern bool AllocConsole();
+        
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private SpriteFont _defaultFont;
@@ -34,6 +38,9 @@ namespace HajimiManbo
 
         public Game1()
         {
+#if DEBUG
+            AllocConsole();            // 分配一个新的控制台窗口
+#endif
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;

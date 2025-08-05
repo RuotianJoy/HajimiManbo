@@ -30,7 +30,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/BackGround/backanimation.gif
+/build:img/BackGround/backanimation.gif;img/BackGround/backanimation
 
 #begin img/BackGround/backanimation/backanimation_f000.png
 /importer:TextureImporter
@@ -1398,7 +1398,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/BackGround/BackgroundPicture.png
+/build:img/BackGround/BackgroundPicture.png;img/BackGround/BackgroundPicture
 
 #begin img/BackGround/mapbg_forest.png
 /importer:TextureImporter
@@ -1410,7 +1410,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/BackGround/mapbg_forest.png
+/build:img/BackGround/mapbg_forest.png;img/BackGround/mapbg_forest
 
 #begin img/BackGround/mapbg_sand.png
 /importer:TextureImporter
@@ -1422,7 +1422,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/BackGround/mapbg_sand.png
+/build:img/BackGround/mapbg_sand.png;img/BackGround/mapbg_sand
 
 #begin img/BackGround/mapbg_snow.png
 /importer:TextureImporter
@@ -1434,7 +1434,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/BackGround/mapbg_snow.png
+/build:img/BackGround/mapbg_snow.png;img/BackGround/mapbg_snow
 
 #begin img/BackGround/mapgd_underground.png
 /importer:TextureImporter
@@ -1458,7 +1458,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/BackGround/roombackground.png
+/build:img/BackGround/roombackground.png;img/BackGround/roombackground
 
 #begin img/BackGround/test.png
 /importer:TextureImporter
@@ -1470,7 +1470,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/BackGround/test.png
+/build:img/BackGround/test.png;img/BackGround/test
 
 #begin img/Boss/milkdragon/downing_flipped.png
 /importer:TextureImporter
@@ -3116,6 +3116,54 @@
 /processorParam:TextureFormat=Color
 /build:img/Enemy/vulture/Vulture.png;img/Enemy/vulture/Vulture
 
+#begin img/Wall/Dirt_Wall_(placed).png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:img/Wall/Dirt_Wall_(placed).png;img/Wall/Dirt_Wall_(placed)
+
+#begin img/Wall/Sandstone_Brick_Wall_(placed).png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:img/Wall/Sandstone_Brick_Wall_(placed).png;img/Wall/Sandstone_Brick_Wall_(placed)
+
+#begin img/Wall/Snow_Wall_(placed).png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:img/Wall/Snow_Wall_(placed).png;img/Wall/Snow_Wall_(placed)
+
+#begin img/Wall/Stone_Wall_(placed).png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:img/Wall/Stone_Wall_(placed).png;img/Wall/Stone_Wall_(placed)
+
 #begin img/Weapon/meowmere/Meowmere_(projectile).png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -3212,6 +3260,18 @@
 /processorParam:TextureFormat=Color
 /build:img/Weapon/orange/orange.png;img/Weapon/orange/orange
 
+#begin Liquid/Liquid_0.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Liquid/Liquid_0.png
+
 #begin Music/BackgroundMusic.mp3
 /importer:Mp3Importer
 /processor:SongProcessor
@@ -3230,7 +3290,7 @@
 /processorParam:Quality=Best
 /build:Music/hudmusic.mp3
 
-#begin Tiles/Dirt_Block_(placed).png
+#begin Tiles/Tiles_0.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -3240,9 +3300,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tiles/Dirt_Block_(placed).png
+/build:Tiles/Tiles_0.png
 
-#begin Tiles/Dirt_Block.png
+#begin Tiles/Tiles_1.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -3252,9 +3312,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tiles/Dirt_Block.png
+/build:Tiles/Tiles_1.png
 
-#begin Tiles/Marble_Block_(placed).png
+#begin Tiles/Tiles_147.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -3264,9 +3324,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tiles/Marble_Block_(placed).png
+/build:Tiles/Tiles_147.png
 
-#begin Tiles/Marble_Block.png
+#begin Tiles/Tiles_2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -3276,9 +3336,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tiles/Marble_Block.png
+/build:Tiles/Tiles_2.png
 
-#begin Tiles/Sand_Block_(placed).png
+#begin Tiles/Tiles_367.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -3288,9 +3348,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tiles/Sand_Block_(placed).png
+/build:Tiles/Tiles_367.png
 
-#begin Tiles/Sand_Block.png
+#begin Tiles/Tiles_53.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -3300,53 +3360,5 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tiles/Sand_Block.png
-
-#begin Tiles/Snow_Block_(placed).png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Tiles/Snow_Block_(placed).png
-
-#begin Tiles/Snow_Block.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Tiles/Snow_Block.png
-
-#begin Tiles/Stone_Block_(placed).png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Tiles/Stone_Block_(placed).png
-
-#begin Tiles/Stone_Block.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Tiles/Stone_Block.png
+/build:Tiles/Tiles_53.png
 
